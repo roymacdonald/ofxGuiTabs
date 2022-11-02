@@ -22,6 +22,9 @@ meta:
 	ADDON_URL = http://github.com/roymacdonald/ofxGuiTabs
 
 common:
+
+	ADDON_DEFINES = USE_OFX_GUI_TABS
+
 	# dependencies with other addons, a list of them separated by spaces 
 	# or use += in several lines
 	# ADDON_DEPENDENCIES =
