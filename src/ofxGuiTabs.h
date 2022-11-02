@@ -237,10 +237,16 @@ public:
     void unregisterMouseEvents() override;
 
     
+    void enableKeys();
+    void disableKeys();
+    bool isKeysEnabled();
+    
     
     
 protected:
 	
+    
+    
     ofEventListeners paramsListeners;
     
 
@@ -289,8 +295,15 @@ protected:
 		
 	
     ofPath bg;
+    
+    bool keyReleased(ofKeyEventArgs&);
+    
 private:
-	
+
+    ofEventListener keysListener;
+    bool bListeningKeys = false;
+    
+
 	std::vector<unique_ptr<ofxGuiTabsOption>> ownedChildren;
     
     bool bRegisteredForMouseEvents = false;

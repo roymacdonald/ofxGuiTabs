@@ -481,6 +481,39 @@ void ofxGuiTabs_<T>::unregisterMouseEvents(){
     bRegisteredForMouseEvents = false;
 }
 
+template<class T>
+bool ofxGuiTabs_<T>::keyReleased(ofKeyEventArgs& args){
+//    cout << "keys modifiers: " << args.modifiers << endl;
+    if(args.hasModifier(OF_KEY_SUPER)){
+        int k = args.key - '1';
+        if(k >= 0 && k < 9 && k < values.size()){
+            setSelectedValueByIndex(k, true);
+            return true;
+        }
+    }
+    return false;
+}
+
+
+template<class T>
+void ofxGuiTabs_<T>::enableKeys(){
+    if(!bListeningKeys){
+        keysListener = ofEvents().keyReleased.newListener(this, &ofxGuiTabs_::keyReleased);
+        bListeningKeys = true;
+    }
+}
+template<class T>
+void ofxGuiTabs_<T>::disableKeys(){
+    if(bListeningKeys){
+        keysListener.unsubscribe();
+        bListeningKeys = false;
+    }
+}
+template<class T>
+bool ofxGuiTabs_<T>::isKeysEnabled(){
+    return bListeningKeys;
+}
+
 
 template class ofxGuiTabs_<string>;
 //template class ofxGuiTabs_<int>;
@@ -498,4 +531,5 @@ template class ofxGuiTabs_<uint64_t>;
 #ifdef TARGET_OSX
 template class ofxGuiTabs_<typename std::conditional<std::is_same<uint32_t, size_t>::value || std::is_same<uint64_t, size_t>::value, bool, size_t>::type>;
 #endif
+
 
