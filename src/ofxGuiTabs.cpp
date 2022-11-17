@@ -39,6 +39,9 @@ ofxGuiTabs_<T>::~ofxGuiTabs_(){
 //--------------------------------------------------------------
 template<class T>
 ofxGuiTabs_<T> * ofxGuiTabs_<T>::setup(std::string name, float width , float height ){
+#ifdef USE_OFX_GUI_TOOLTIP
+        guiElement = this;
+#endif
     if (bIsSetup){
         ofLogWarning("ofxGuiTabs_<T>::setup" ) << "Dropdown \"name\" is already setup. Nothing will be done";
         return this;
@@ -67,6 +70,8 @@ ofxGuiTabs_<T> * ofxGuiTabs_<T>::setup(ofParameter<T> param, float width, float 
 //--------------------------------------------------------------
 template<class T>
 void ofxGuiTabs_<T>::selectedValueChanged(T & newvalue){
+    if(bIgnoreSelectedValueChange) return;
+    cout << "ofxGuiTabs_<T>::selectedValueChanged " << newvalue << "\n";
 	auto it = find(values.begin(), values.end(), newvalue);
 	if(it != values.end()){// it was found. it should be found anyways but better to double check
 		auto index = std::distance(values.begin(), it);
@@ -84,9 +89,13 @@ void ofxGuiTabs_<T>::selectedValueChanged(T & newvalue){
 //--------------------------------------------------------------
 template<class T>
 void ofxGuiTabs_<T>::setSelectedValueByIndex( const size_t& index, bool bNotify){
+    cout << "ofxGuiTabs_<T>::setSelectedValueByIndex " ;
 	if(index < values.size()){
+        bIgnoreSelectedValueChange = true;
 		selectedValue = values[index];
+        bIgnoreSelectedValueChange = false;
 		selectedOption = options[index];
+        cout << selectedValue ;
 		if(!bMultiselection){
 //			auto control = group.getControl(options[index]);
 //			if(control != nullptr){
@@ -95,6 +104,7 @@ void ofxGuiTabs_<T>::setSelectedValueByIndex( const size_t& index, bool bNotify)
 		}
 		if(bNotify) ofNotifyEvent(change_E, options[index], this);
 	}
+    cout << endl;
 }
 //--------------------------------------------------------------
 template<class T>
@@ -109,38 +119,32 @@ void ofxGuiTabs_<T>::setSelectedValueByName( const std::string& valueName, bool 
 }
 //--------------------------------------------------------------
 template<class T>
-void ofxGuiTabs_<T>::optionChanged(const void * sender, bool& b){
-	if(b){
+void ofxGuiTabs_<T>::optionChanged(const void * sender, size_t& b){
+//    if(b){
+        cout << "ofxGuiTabs_<T>::optionChanged\n";
         if(sender){
-//        auto s = ( ofxGuiTabsOption*)(sender);
-		
-
-//			auto& g = group.getParameter().castGroup();
-				
-        
-			int foundIndex = -1;           
-			for(int i = 0; i <ownedChildren.size(); i++){
-//            for(auto& c : ownedChildren){
-                auto& c = ownedChildren[i];
-                if(c.get() == sender){
-//				if(ownedChildren[i]->getParameter().getInternalObject() == ((ofParameter<bool> *)(sender))->getInternalObject()){
-                    
-					foundIndex = i;
-					break;
-				}
-			}
-			if(foundIndex >= 0){
-//                cout << "Found index " << foundIndex << endl;
-				setSelectedValueByIndex(foundIndex, true);
-			}
-			
-		
-	}else{
-		ofLogVerbose("ofxGuiTabs_::optionChanged(...)")  << "sender = null";
-	}
-
+            //        auto s = ( ofxGuiTabsOption*)(sender);
+            
+            
+//            int foundIndex = -1;
+//            for(int i = 0; i <ownedChildren.size(); i++){
+//                //            for(auto& c : ownedChildren){
+//                auto& c = ownedChildren[i];
+//                if(c.get() == sender){
+//                    //				if(ownedChildren[i]->getParameter().getInternalObject() == ((ofParameter<bool> *)(sender))->getInternalObject()){
+//
+//                    foundIndex = i;
+//                    break;
+//                }
+//            }
+//            if(foundIndex >= 0){
+                cout << "Found index " << b << endl;
+                setSelectedValueByIndex(b, true);
+//            }
+//        }
+    }else{
+        ofLogVerbose("ofxGuiTabs_::optionChanged(...)")  << "sender = null";
     }
-
 }
 //--------------------------------------------------------------
 template<class T>
@@ -164,7 +168,8 @@ ofxGuiTabs_<T> * ofxGuiTabs_<T>::add(const T& value, const string& option) {
 	ownedChildren.emplace_back(make_unique<ofxGuiTabsOption>());
 	auto o = ownedChildren.back().get();
 	if(o){
-		o->setup(option, value == selectedValue.get());
+        setNewChild(o, value, option, ownedChildren.size() -1);
+//		o->setup(option, value, value == selectedValue.get());
 		optionsListeners.push(o->changed_E.newListener(this, &ofxGuiTabs_::optionChanged));
     
         setNeedsRedraw();
@@ -176,6 +181,23 @@ ofxGuiTabs_<T> * ofxGuiTabs_<T>::add(const T& value, const string& option) {
 
     return this;
 }
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::setNewChild(ofxGuiTabsOption * newChild, const T& value, const string& option, size_t index){
+    if(newChild)
+    {
+        newChild->setup(option, value, value == selectedValue.get());
+    }
+}
+//--------------------------------------------------------------
+template<>
+void ofxGuiTabs_<string>::setNewChild(ofxGuiTabsOption * newChild, const string& value, const string& option, size_t index){
+    if(newChild)
+    {
+        newChild->setup(option, index, value == selectedValue.get());
+    }
+}
+
 //--------------------------------------------------------------
 template<class T>
 ofxGuiTabs_<T> * ofxGuiTabs_<T>::add(const vector<T> & options){
@@ -513,6 +535,114 @@ template<class T>
 bool ofxGuiTabs_<T>::isKeysEnabled(){
     return bListeningKeys;
 }
+
+#ifdef USE_OFX_GUI_TOOLTIP
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::setupTooltip(ofJson &json){
+//    cout << "ofxGuiTabs_<T>::setupTooltip " << getName() << "  "<< ownedChildren.size() <<endl;
+//    json.dump(4) << "\n";
+    if(!json.contains(getName())){
+        json[getName()] = ofJson::object({});
+//        cout << "Created json object\n";
+    }
+    
+    auto& j = json[getName()];
+//    cout << j.dump(4);
+    
+    for(auto&c: ownedChildren)
+    {
+        if(c) c->setupTooltip(j);
+    }
+    enableTooltip();
+}
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::resetTooltips(){
+    
+    for(auto&c: ownedChildren)
+    {
+        if(c) c->removeTooltip();
+    }
+}
+
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::addTooltip(T value, const string& text){
+    auto o = getOptionByValue(value);
+    if(o) o->setTooltipText(text);
+}
+
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::addTooltip(const string& option, const string& text){
+    auto o = getOptionByName(option);
+    if(o) o->setTooltipText(text);
+}
+
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::enableTooltip(){
+    if(!bTooltipsEnabled){
+        bTooltipsEnabled = true;
+        for(auto&c: ownedChildren)
+        {
+            if(c) c->enableTooltip();
+        }
+    }
+}
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::disableTooltip(){
+    if(bTooltipsEnabled){
+        bTooltipsEnabled = false;
+        for(auto&c: ownedChildren)
+        {
+            if(c) c->disableTooltip();
+        }
+    }
+}
+
+//--------------------------------------------------------------
+template<class T>
+void ofxGuiTabs_<T>::drawTooltip(){
+    if(bTooltipsEnabled){
+        for(auto&c: ownedChildren)
+        {
+            if(c) c->drawTooltip();
+        }
+    }
+}
+#endif
+
+//--------------------------------------------------------------
+template<class T>
+ofxGuiTabsOption* ofxGuiTabs_<T>::getOptionByName(const string& name){
+    auto it = find(options.begin(), options.end(), name);
+    if(it != options.end()){// it was found. it should be found anyways but better to double check
+        auto index = std::distance(options.begin(), it);
+        return getOptionByIndex(index);
+    }
+    return nullptr;
+}
+//--------------------------------------------------------------
+template<class T>
+ofxGuiTabsOption* ofxGuiTabs_<T>::getOptionByValue(const T& value){
+    auto it = find(values.begin(), values.end(), value);
+    if(it != values.end()){// it was found. it should be found anyways but better to double check
+        auto index = std::distance(values.begin(), it);
+        return getOptionByIndex(index);
+    }
+    return nullptr;
+}
+//--------------------------------------------------------------
+template<class T>
+ofxGuiTabsOption* ofxGuiTabs_<T>::getOptionByIndex(const size_t& index){
+    if(index < ownedChildren.size()) return ownedChildren[index].get();
+    return nullptr;
+}
+
+
 
 
 template class ofxGuiTabs_<string>;

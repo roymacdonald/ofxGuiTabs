@@ -1,26 +1,31 @@
 #include "ofxGuiTabsOption.h"
 #include "ofGraphics.h"
+
+
 using namespace std;
 
-ofxGuiTabsOption::ofxGuiTabsOption(ofParameter<bool> _bVal, float height){
-	setup(_bVal,height);
+ofxGuiTabsOption::ofxGuiTabsOption(ofParameter<bool> _bVal, size_t index, float height){
+	setup(_bVal, index, height);
 }
 
 ofxGuiTabsOption::~ofxGuiTabsOption(){
 //	value.removeListener(this,&ofxGuiTabsOption::valueChanged);
 }
 
-ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, float height){
+ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, size_t index, float height){
+#ifdef USE_OFX_GUI_TOOLTIP
+        guiElement = this;
+#endif
 	b.x = 0;
 	b.y = 0;
-    
-	b.height = height;
+    tabIndex  = index;
+	b.height = height + textPadding*2;
 	bGuiActive = false;
 	value.makeReferenceTo(_bVal);
     
-    float tx = getTextBoundingBox(getName(), 0,0).width + (textPadding*2);
+    float tx = getTextBoundingBox(getName(), 0,0).width + (textPadding*4);
     if(tx  > defaultWidth){
-        cout << "ofxGuiTabsOption defaultWidth\n";
+//        cout << "ofxGuiTabsOption defaultWidth\n";
         b.width = defaultWidth ;
     }else{
         b.width =  tx;
@@ -37,9 +42,9 @@ ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, float height
 
 }
 
-ofxGuiTabsOption * ofxGuiTabsOption::setup(const std::string& toggleName, bool _bVal, float height){
+ofxGuiTabsOption * ofxGuiTabsOption::setup(const std::string& toggleName, size_t index, bool _bVal, float height){
 	value.set(toggleName,_bVal);
-	return setup(value,height);
+	return setup(value,index, height);
 }
 
 
@@ -87,7 +92,8 @@ bool ofxGuiTabsOption::mouseReleased(ofMouseEventArgs & args){
 
 void ofxGuiTabsOption::generateDraw(){
 	bg.clear();
-	bg.rectangle(b);
+//	bg.rectangle(b);
+    bg.rectRounded(b, textPadding);
     
     generateNameTextMesh(b);
     
@@ -96,20 +102,8 @@ void ofxGuiTabsOption::generateDraw(){
 void ofxGuiTabsOption::generateNameTextMesh(const ofRectangle& rect)
 {
 	std::string name;
-	auto textX = rect.x + textPadding;//+ checkboxRect.width;
-//	if(getTextBoundingBox(getName(), textX, 0).getMaxX() > rect.getMaxX() - textPadding){
-//		for(auto c: ofUTF8Iterator(getName())){
-//			auto next = name;
-//			ofUTF8Append(next, c);
-//			if(getTextBoundingBox(next,textX,0).getMaxX() > rect.getMaxX() - textPadding){
-//				break;
-//			}else{
-//				name = next;
-//			}
-//		}
-//	}else{
-		name = getName();
-//	}
+	auto textX = rect.x + textPadding*2;
+    name = getName();
 
 	textMesh = getTextMesh(name, textX, getTextVCenteredInRect(rect));
 }
@@ -154,8 +148,9 @@ ofAbstractParameter & ofxGuiTabsOption::getParameter(){
 }
 
 void ofxGuiTabsOption::valueChanged(bool & value){
-    bool v = value;
-    ofNotifyEvent(changed_E, v , this);
+    if(value){
+        ofNotifyEvent(changed_E, tabIndex , this);
+    }
     setNeedsRedraw();
 }
 
@@ -197,9 +192,9 @@ bool ofxGuiTabsOption::setValue(float mx, float my, bool bCheck){
         }
     }
     if( bGuiActive ){
+      //  cout << "ofxGuiTabsOption::setValue  name: " << getName() << "\n";
         value =  !value;
         return true;
     }
     return false;
 }
-

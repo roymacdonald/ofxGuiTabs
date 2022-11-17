@@ -1,19 +1,31 @@
 #pragma once
 
 #include "ofxBaseGui.h"
+#include "ofJson.h"
+#ifdef USE_OFX_GUI_TOOLTIP
+#include "ofxGuiTooltipBase.h"
+#endif
 
-class ofxGuiTabsOption : public ofxBaseGui{
+class ofxGuiTabsOption : public ofxBaseGui
+#ifdef USE_OFX_GUI_TOOLTIP
+, public ofxGuiTooltipBase
+#endif
+{
   
 public:
-    ofxGuiTabsOption(){}
+    ofxGuiTabsOption(){
+#ifdef USE_OFX_GUI_TOOLTIP
+        guiElement = this;
+#endif
+    }
 	virtual ~ofxGuiTabsOption();
 	
 	void enableElement();
     void disableElement();
 
-    ofxGuiTabsOption(ofParameter<bool> _bVal, float height = defaultHeight);
-    ofxGuiTabsOption * setup(ofParameter<bool> _bVal,  float height = defaultHeight);
-    ofxGuiTabsOption * setup(const std::string& toggleName, bool _bVal, float height = defaultHeight);
+    ofxGuiTabsOption(ofParameter<bool> _bVal, size_t index, float height = defaultHeight);
+    ofxGuiTabsOption * setup(ofParameter<bool> _bVal,  size_t index, float height = defaultHeight);
+    ofxGuiTabsOption * setup(const std::string& toggleName, size_t index, bool _bVal, float height = defaultHeight);
 	
 
 	virtual bool mouseMoved(ofMouseEventArgs & args) override;
@@ -23,7 +35,7 @@ public:
 	virtual bool mouseScrolled(ofMouseEventArgs & args) override{return false;}
 	
 
-    ofEvent<bool> changed_E;
+    ofEvent<size_t> changed_E;
     
     template<typename... Args>
     std::unique_ptr<of::priv::AbstractEventToken> newListener(Args...args) {
@@ -49,19 +61,17 @@ public:
 
 
 protected:
+#ifdef USE_OFX_GUI_TOOLTIP
+    virtual bool isOver() override{
+        return bIsOver;
+    }
+#endif
+    size_t tabIndex;
+    
 	void generateNameTextMesh(const ofRectangle& rect);
-	
-	
-//	enum State {
-//		UNSELECTED=0,
-//		OVER,
-//		SELECTED
-//	}_state;
-//
-//	void setState(State state);
-//
+    
 	virtual void render() override;
-//	ofRectangle checkboxRect;
+
 	ofParameter<bool> value;
 	bool bGuiActive;
 	bool bIsOver = false;
