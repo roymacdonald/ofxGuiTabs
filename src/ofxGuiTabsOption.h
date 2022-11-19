@@ -20,12 +20,12 @@ public:
     }
 	virtual ~ofxGuiTabsOption();
 	
-	void enableElement();
-    void disableElement();
 
-    ofxGuiTabsOption(ofParameter<bool> _bVal, size_t index, float height = defaultHeight);
-    ofxGuiTabsOption * setup(ofParameter<bool> _bVal,  size_t index, float height = defaultHeight);
-    ofxGuiTabsOption * setup(const std::string& toggleName, size_t index, bool _bVal, float height = defaultHeight);
+
+    ofxGuiTabsOption(ofParameter<bool> _bVal, float height = defaultHeight);
+    ofxGuiTabsOption(const std::string& tabName, bool _bVal = false, float height = defaultHeight);
+    ofxGuiTabsOption * setup(ofParameter<bool> _bVal, float height = defaultHeight);
+    ofxGuiTabsOption * setup(const std::string& tabName, bool _bVal, float height = defaultHeight);
 	
 
 	virtual bool mouseMoved(ofMouseEventArgs & args) override;
@@ -35,27 +35,15 @@ public:
 	virtual bool mouseScrolled(ofMouseEventArgs & args) override{return false;}
 	
 
-    ofEvent<size_t> changed_E;
-    
-    template<typename... Args>
-    std::unique_ptr<of::priv::AbstractEventToken> newListener(Args...args) {
-        return value.newListener(args...);
-    }
-    
-	template<class ListenerClass, typename ListenerMethod>
-	void addListener(ListenerClass * listener, ListenerMethod method){
-		value.addListener(listener,method);
-	}
+    ofEvent<std::string> selection_E;
 
-	template<class ListenerClass, typename ListenerMethod>
-	void removeListener(ListenerClass * listener, ListenerMethod method){
-		value.removeListener(listener,method);
-	}
-
+    bool isSelected();
+    
+    void setSelected(bool bSelected);
+    
 	void select();
 	
 	virtual void deselect();
-
 
 	virtual ofAbstractParameter & getParameter() override;
 

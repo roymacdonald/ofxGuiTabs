@@ -3,36 +3,34 @@
 
 
 using namespace std;
-
-ofxGuiTabsOption::ofxGuiTabsOption(ofParameter<bool> _bVal, size_t index, float height){
-	setup(_bVal, index, height);
+//-----------------------------------------------------------------------
+ofxGuiTabsOption::ofxGuiTabsOption(ofParameter<bool> _bVal, float height){
+	setup(_bVal, height);
+}
+ofxGuiTabsOption::ofxGuiTabsOption(const std::string& tabName, bool _bVal, float height){
+    setup(tabName, _bVal, height);
 }
 
-ofxGuiTabsOption::~ofxGuiTabsOption(){
-//	value.removeListener(this,&ofxGuiTabsOption::valueChanged);
-}
+//-----------------------------------------------------------------------
+ofxGuiTabsOption::~ofxGuiTabsOption(){}
 
-ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, size_t index, float height){
+//-----------------------------------------------------------------------
+ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, float height){
 #ifdef USE_OFX_GUI_TOOLTIP
         guiElement = this;
 #endif
 	b.x = 0;
 	b.y = 0;
-    tabIndex  = index;
 	b.height = height + textPadding*2;
 	bGuiActive = false;
 	value.makeReferenceTo(_bVal);
     
     float tx = getTextBoundingBox(getName(), 0,0).width + (textPadding*4);
     if(tx  > defaultWidth){
-//        cout << "ofxGuiTabsOption defaultWidth\n";
         b.width = defaultWidth ;
     }else{
         b.width =  tx;
     }
-    
-
-
     
     listener = value.newListener(this,&ofxGuiTabsOption::valueChanged);
 	registerMouseEvents();
@@ -42,54 +40,70 @@ ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, size_t index
 
 }
 
-ofxGuiTabsOption * ofxGuiTabsOption::setup(const std::string& toggleName, size_t index, bool _bVal, float height){
+//-----------------------------------------------------------------------
+ofxGuiTabsOption * ofxGuiTabsOption::setup(const std::string& toggleName, bool _bVal, float height){
 	value.set(toggleName,_bVal);
-	return setup(value,index, height);
+	return setup(value, height);
 }
 
-
+//-----------------------------------------------------------------------
 bool ofxGuiTabsOption::mouseMoved(ofMouseEventArgs & args){
-	if(isGuiDrawing() && b.inside(args)){
-		bIsOver = true;
-//		return true;
-	}else{
-		bIsOver = false;
-	}
+    bIsOver = (isGuiDrawing() && b.inside(args));
+    
+//	if(isGuiDrawing() && b.inside(args)){
+//		bIsOver = true;
+//	}else{
+//		bIsOver = false;
+//	}
 	return false;
 }
 
+//-----------------------------------------------------------------------
 bool ofxGuiTabsOption::mousePressed(ofMouseEventArgs & args){
-	if(setValue(args.x, args.y, true)){
-		bIsOver = true;
-		return true;
-	}else{
-		bIsOver = false;
-		return false;
-	}
+    bIsOver = setValue(args.x, args.y, true);
+    return bIsOver;
+//	if(setValue(args.x, args.y, true)){
+//		bIsOver = true;
+//		return true;
+//	}else{
+//		bIsOver = false;
+//		return false;
+//	}
 }
 
+//-----------------------------------------------------------------------
 bool ofxGuiTabsOption::mouseDragged(ofMouseEventArgs & args){
-	if(bGuiActive && b.inside(args)){
-		bIsOver = true;
-		return true;
-	}else{
-		bIsOver = false;
-		return false;
-	}
+    
+    bIsOver = (bGuiActive && b.inside(args));
+    return bIsOver;
+    
+//	if(bGuiActive && b.inside(args)){
+//		bIsOver = true;
+//		return true;
+//	}else{
+//		bIsOver = false;
+//		return false;
+//	}
 }
 
+//-----------------------------------------------------------------------
 bool ofxGuiTabsOption::mouseReleased(ofMouseEventArgs & args){
 	bool wasGuiActive = bGuiActive;
 	bGuiActive = false;
-	if(wasGuiActive && b.inside(args)){
-		bIsOver = true;
-		return true;
-	}else{
-		bIsOver = false;
-		return false;
-	}
+    bIsOver = (wasGuiActive && b.inside(args));
+
+    return bIsOver;
+        
+//	if(wasGuiActive && b.inside(args)){
+//		bIsOver = true;
+//		return true;
+//	}else{
+//		bIsOver = false;
+//		return false;
+//	}
 }
 
+//-----------------------------------------------------------------------
 void ofxGuiTabsOption::generateDraw(){
 	bg.clear();
 //	bg.rectangle(b);
@@ -99,6 +113,7 @@ void ofxGuiTabsOption::generateDraw(){
     
 }
 
+//-----------------------------------------------------------------------
 void ofxGuiTabsOption::generateNameTextMesh(const ofRectangle& rect)
 {
 	std::string name;
@@ -108,22 +123,13 @@ void ofxGuiTabsOption::generateNameTextMesh(const ofRectangle& rect)
 	textMesh = getTextMesh(name, textX, getTextVCenteredInRect(rect));
 }
 
+//-----------------------------------------------------------------------
 void ofxGuiTabsOption::render(){
-	if(value)
-	{
-		bg.setFillColor(thisFillColor);
-	}
-	else
-	{
-		if(bIsOver)
-		{
-			bg.setFillColor(thisBorderColor);
-		}
-		else
-		{
-			bg.setFillColor(thisBackgroundColor);
-		}
-	}
+    bg.setFillColor(value?
+                    thisFillColor:
+                    (bIsOver?
+                        thisBorderColor:
+                        thisBackgroundColor));
     bg.draw();
 
 	ofColor c = ofGetStyle().color;
@@ -142,42 +148,44 @@ void ofxGuiTabsOption::render(){
 	}
 }
 
-
+//-----------------------------------------------------------------------
 ofAbstractParameter & ofxGuiTabsOption::getParameter(){
 	return value;
 }
 
+//-----------------------------------------------------------------------
 void ofxGuiTabsOption::valueChanged(bool & value){
     if(value){
-        ofNotifyEvent(changed_E, tabIndex , this);
+        auto n = getName();
+        ofNotifyEvent(selection_E,  n, this);
     }
     setNeedsRedraw();
 }
 
-void ofxGuiTabsOption::enableElement() {
-	value.setWithoutEventNotifications(true);
-	setNeedsRedraw();
-}
-
-void ofxGuiTabsOption::disableElement() {
-    bGuiActive = false;
-    value.setWithoutEventNotifications(false);
-    setNeedsRedraw();
-}
-
+//-----------------------------------------------------------------------
 void ofxGuiTabsOption::select()
 {
-    value.setWithoutEventNotifications(true);
-    setNeedsRedraw();
+    value = true;
 }
 
+//-----------------------------------------------------------------------
 void ofxGuiTabsOption::deselect()
 {
-    value.setWithoutEventNotifications(false);
-    setNeedsRedraw();
+    bGuiActive = false;
+    value  = false;
 }
 
+//-----------------------------------------------------------------------
+bool ofxGuiTabsOption::isSelected(){
+    return value.get();
+}
 
+//-----------------------------------------------------------------------
+void ofxGuiTabsOption::setSelected(bool bSelected){
+    value = bSelected;
+}
+
+//-----------------------------------------------------------------------
 bool ofxGuiTabsOption::setValue(float mx, float my, bool bCheck){
     
     if( !isGuiDrawing() ){
@@ -185,11 +193,12 @@ bool ofxGuiTabsOption::setValue(float mx, float my, bool bCheck){
         return false;
     }
     if( bCheck ){
-        if( b.inside(mx, my) ){
-            bGuiActive = true;
-        }else{
-            bGuiActive = false;
-        }
+        bGuiActive = b.inside(mx, my) ;
+//        ){
+//             true;
+//        }else{
+//            bGuiActive = false;
+//        }
     }
     if( bGuiActive ){
       //  cout << "ofxGuiTabsOption::setValue  name: " << getName() << "\n";

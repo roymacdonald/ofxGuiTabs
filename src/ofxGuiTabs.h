@@ -1,6 +1,6 @@
 //
 //  ofxGuiTabs.hpp
-//  dropdown
+//  tabs
 //
 //  Created by Roy Macdonald on 10/14/18.
 //
@@ -21,169 +21,93 @@ using namespace std;
 
 
 
-template<class T>
-class ofxGuiTabs_ : public ofxBaseGui
+class ofxGuiTabs : public ofxBaseGui
 #ifdef USE_OFX_GUI_TOOLTIP
 , public ofxGuiTooltipBase
 #endif
 {
 
 public:
-    virtual ~ofxGuiTabs_();
+    virtual ~ofxGuiTabs();
     // ---------------------------------------------------
     // ----------------- Constructors
     // ---------------------------------------------------
     
     /// default constructor.
-    /// \warning You will need to call the one of the setup class methods to be able to use this dropdown
-    ofxGuiTabs_(){
-#ifdef USE_OFX_GUI_TOOLTIP
-        guiElement = this;
-#endif
-    };
+    /// \warning You will need to call the one of the setup class methods to be able to use this tabs
+    ofxGuiTabs();
     
     /// \brief constructor that calls setup function with same parameters
     /// Dropdown will be empty. you should add values with the add(...) function
-    /// @param name the name of the dropdown.
+    /// @param name the name of the tabs.
     /// @param width = the width of the drawn element. Defaults to ofxGui's default
-    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the dropdown name and the second for the selected value it has, if any.
-    ofxGuiTabs_(std::string name, float width = defaultWidth, float height = defaultHeight*2);
+    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the tabs name and the second for the selected value it has, if any.
+    ofxGuiTabs(std::string name, float width = defaultWidth, float height = defaultHeight*2);
     
     /// \brief constructor that calls setup function with same parameters
     /// Dropdown will be empty. You should add values with the add(...) function
-    /// @param param The passed ofParameter will be "linked" to the dropdown and will change as you select different elements from the dropdown
-    /// The name of this dropdown is taken from the passed ofParameter's name
+    /// @param param The passed ofParameter will be "linked" to the tabs and will change as you select different elements from the tabs
+    /// The name of this tabs is taken from the passed ofParameter's name
     /// @param width = the width of the drawn element. Defaults to ofxGui's default
-    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the dropdown name and the second for the selected value it has, if any.
-    ofxGuiTabs_(ofParameter<T> param, float width = defaultWidth, float height = defaultHeight*2);
+    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the tabs name and the second for the selected value it has, if any.
+    ofxGuiTabs(ofParameter<string> param, float width = defaultWidth, float height = defaultHeight*2);
     
     /// \brief Construct and add elements
-    /// @param param The passed ofParameter will be "linked" to the dropdown and will change as you select different elements from the dropdown
-    /// The name of this dropdown is taken from the passed ofParameter's name
-    /// \param dropDownOptions  std::map which maps  whatever type the passed ofParameter has to a string representation of it. Dropdown will be populated with it.
+    /// @param param The passed ofParameter will be "linked" to the tabs and will change as you select different elements from the tabs
+    /// The name of this tabs is taken from the passed ofParameter's name
+    /// \param groupNames vector with the names of the tabs that will get created.
     /// @param width = the width of the drawn element. Defaults to ofxGui's default
-    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the dropdown name and the second for the selected value it has, if any.
+    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the tabs name and the second for the selected value it has, if any.
     /// This is useful when for instance you have an ofParameter<int> but you want to display different names for each value, rather than the value itself.
     /// You still can add more values with the add(...) function
-    ofxGuiTabs_(ofParameter<T> param, const map<T,string>& dropDownOptions, float width = defaultWidth, float height = defaultHeight*2);
+    ofxGuiTabs(ofParameter<string> param, const vector<string>& tabNames, float width = defaultWidth, float height = defaultHeight*2);
     
-    
-    /// Construct and add elements
-    /// \brief Construct and add elements
-    /// \param dropDownOptions  std:vector with values of the same type as the ofParameter passed. Dropdown will be populated with this values.
-    /// @param param The passed ofParameter will be "linked" to the dropdown and will change as you select different elements from the dropdown
-    /// The name of this dropdown is taken from the passed ofParameter's name
-    /// @param width = the width of the drawn element. Defaults to ofxGui's default
-    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the dropdown name and the second for the selected value it has, if any.
-    /// This is useful when for instance you have an ofParameter<int> but you want to display different names for each value, rather than the value itself.
-    /// You still can add more values with the add(...) function
-    ofxGuiTabs_(ofParameter<T> param, const std::vector<T> & dropDownOptions, float width = defaultWidth, float height = defaultHeight*2);
-	
     
     //---- Setup function.
     // Only call setup if the default constructor was used.
     /// \brief Setup this dropdonw
     /// Dropdown will be empty. You should add values with the add(...) function
-    /// @param param The passed ofParameter will be "linked" to the dropdown and will change as you select different elements from the dropdown
-    /// The name of this dropdown is taken from the passed ofParameter's name
+    /// @param param The passed ofParameter will be "linked" to the tabs and will change as you select different elements from the tabs
+    /// The name of this tabs is taken from the passed ofParameter's name
     /// @param width = the width of the drawn element. Defaults to ofxGui's default
-    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the dropdown name and the second for the selected value it has, if any.
-    ofxGuiTabs_ * setup(ofParameter<T> param, float width = defaultWidth, float height = defaultHeight*2);
+    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the tabs name and the second for the selected value it has, if any.
+    ofxGuiTabs * setup(ofParameter<string> param, float width = defaultWidth, float height = defaultHeight*2);
 	
-    /// \brief Setup this dropdonw
+    /// \brief Setup this tabs
     /// \warning use only when you instanced this classs and used its default constructor.
-    /// @param name the name of the dropdown.
+    /// @param name the name of the tabs.
     /// @param width = the width of the drawn element. Defaults to ofxGui's default
-    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the dropdown name and the second for the selected value it has, if any.
+    /// @param height = the height of the drawn element. Defaults to twice of ofxGui's default. This is because one line is used to draw the tabs name and the second for the selected value it has, if any.
     /// Dropdown will be empty. you should add values with the add(...) function
-    ofxGuiTabs_ * setup(std::string name, float width = defaultWidth, float height = defaultHeight*2);
+    ofxGuiTabs * setup(std::string name, float width = defaultWidth, float height = defaultHeight*2);
 	
-    
-    // ---------------------------------------------------
-    // ----------------- Multiple Selection Option
-    // ---------------------------------------------------
-    
-    /// \brief Enable Multiple Items selection. This is mutually exclusive with collapse on selection
-	void enableMultipleSelection();
-    
-    /// \brief Disable Multiple Items selection. This is mutually exclusive with collapse on selection
-    void disableMultipleSelection();
-    
-    /// \brief get if multiple selection is enabled.
-    /// \return true if multiple selection is enabled, false otherwise
-	bool isEnabledMultipleSelection();
-    
-    /// \brief get the ofParameter that indicates if multiple selection is enabled or not.
-    /// Use this to add this option to a GUI.
-//	ofParameter<bool> & getMultiSelectionParameter();
-		
+    		
 
     // ---------------------------------------------------
-    // ----------------- Adding/creating dropdown elements
+    // ----------------- Adding/creating tabs elements
     // ---------------------------------------------------
     
-    /// \brief add a dropdown option.
-    /// This will create a new dropdown element which is owend by the dropdown.
-    /// @param value the value that the this new option will have
-    /// @param option The string  that will be shown when selecting this value
-    /// \return pointer to the newly created dropdown element
-    ofxGuiTabs_ * add(const T& value, const string& option);
+    /// \brief add a tabs option.
+    /// This will create a new tab.
+    /// @param tabName the name that this new tab will have
+    /// \return pointer to the newly created tab
+    ofxGuiGroup * newTab(const string& tabName);
 
-    /// \brief add a dropdown option.
-    /// This will create a new dropdown element which is owend by the dropdown.
-    /// @param value the value that the this new option will have.
-    /// The string shown in the dropdown will be the automatic string representation of this value
-    /// \return pointer to the newly created dropdown element
-    ofxGuiTabs_ * add(const T& value);
     
-    /// \brief add several dropdown option at once.
-    /// This will create new dropdown elements which will be owend by the dropdown.
-    /// @param options a vector with several options.
-    /// The string shown in the dropdown will be the automatic string representation of this value
-    /// \return pointer to the newly created dropdown element
-    ofxGuiTabs_ * add(const std::vector<T> & options);
-    
-    /// \brief add several dropdown option at once.
-    /// This will create new dropdown elements which will be owend by the dropdown.
-    /// @param options a map containing the values and their string representations to be added.
-    /// This is the same as calling  add(const T& value, const string& option) for each of the map's values.
-    /// \return pointer to the newly created dropdown element
-    ofxGuiTabs_ * add(const std::map<T, std::string> & options);
+    /// \brief add several tabs  at once.
+    /// This will create new tabs.
+    /// @param tabNames a vector of strings containing the names of all the tabs to create.
+    void newTab(const std::vector<string> & tabNames);
     
 	    
 		
-    /// \brief clear all the elements from this dropdown.
-    /// \warning the correct destruction of dropdown elements will happen ONLY for the ones  owned by this dropdown will be carried out.
+    /// \brief clear all the elements from this tabs.
 	void clear();
 	
 	
 	
-	
-	
-    // ---------------------------------------------------
-    // ----------------- Events and listeners
-    // ---------------------------------------------------
-    
-    /// \brief Helper function to add a listenerr that gets called whenever the dropdown selection changes
-    /// \param listener pointer to the object that is listening
-    /// \param method pointer to the listener's method to be called
-	template<class ListenerClass, typename ListenerMethod>
-	void addListener(ListenerClass * listener, ListenerMethod method){
-		selectedValue.addListener(listener,method);
-	}
-	
-    /// \brief Helper function to remove a previously added listener.
-    ///  The parameters passed to this function must be exactly the same as the ones passed to addListener in order to successfuly remove the listener
-    /// \param listener pointer to the object that is listening
-    /// \param method pointer to the listener's method to be called
-	template<class ListenerClass, typename ListenerMethod>
-	void removeListener(ListenerClass * listener, ListenerMethod method){
-		selectedValue.removeListener(listener,method);
-	}
-
-    
-    /// \brief ofEvent called whenever the dropdown selection changes. The data passed along with it is the displayed name of the option that changed
-	ofEvent<std::string> change_E;
+    /// \brief ofEvent called whenever  the selected tab changes. The data passed along with it is the name of the newly selected tab
+	ofEvent<std::string> selection_E;
     
     
     // ---------------------------------------------------
@@ -191,18 +115,7 @@ public:
     // ---------------------------------------------------
     ///\brief this is just a needed function, as it overrides a virtual abstract base function.
     ///\return the selectedValue ofParam, but as it is an ofAbstractParam you will need to cast it properly in order to make it useful.
-    ///As such, it is way much easier to simply acces selectedValue directly.
     virtual ofAbstractParameter & getParameter() override;
-
-    ///\brief get the parameter group for the dropdown paramaters. Use this if you want to add to a gui these parameters.
-    ///\return ofParameterGroup with the dropdown params.
-//    ofParameterGroup& getDropdownParameters();
-	
-	
-    
-    ///\brief selected value parameter. This is the one that actually changes when a selection in the dropdown is made.
-	ofParameter<T> selectedValue;
-	
 	
     
     // ---------------------------------------------------
@@ -218,19 +131,9 @@ public:
         // ---------------------------------------------------
     // ----------------- Selection
     // ---------------------------------------------------
-	void setSelectedValueByName( const std::string& valueName, bool bNotify);
-	void setSelectedValueByIndex( const size_t& index, bool bNotify);
-
-	void deselect() ;
-
-    std::string getOptionAt(size_t index);
-    
-    // ---------------------------------------------------
-    // ----------------- Children
-    // ---------------------------------------------------
+	bool setSelectedTab( const std::string& tabName);
 	
-
-    std::vector<unique_ptr<ofxGuiTabsOption>>& getOwnedChildren(){return ownedChildren;}
+	void deselect() ;
     
     
     // ---------------------------------------------------
@@ -247,45 +150,37 @@ public:
     void unregisterMouseEvents() override;
 
     
-    void enableKeys();
-    void disableKeys();
-    bool isKeysEnabled();
-    
-    
     // ---------------------------------------------------
     // ----------------- getters
     // ---------------------------------------------------
-    ///\brief returns the options for this dropdown.
-    ///This does not include nested dropdowns.
-    ///\returns an std::vector<std::string> with the available options in the dropdown. Each of these strings are what you see in the dropdown.
+    ///\brief returns the options for this tabs.
+    ///This does not include nested tabss.
+    ///\returns an std::vector<std::string> with the available options in the tabs. Each of these strings are what you see in the tabs.
     
-    const vector<string> & getOptions(){return options;}
+//    const vector<string> & getOptions(){return options;}
+//
+//    ///\brief returns the values for this tabs.
+//    ///This does not include nested tabss.
+//    ///\returns an std::vector<T> with the value that is mapped to an option. Values and options share their index.
+//    const vector<T> & getValues(){return values;}
     
-    ///\brief returns the values for this dropdown.
-    ///This does not include nested dropdowns.
-    ///\returns an std::vector<T> with the value that is mapped to an option. Values and options share their index.
-    const vector<T> & getValues(){return values;}
-    
-    ///\brief returns the number of options or valuesthis dropdown.
-    ///This does not include nested dropdowns.
-    ///\returns std::size_t with the amount of options or values.
-    size_t getNumOptions(){return options.size(); }
+    ///\brief returns the number of tabs
+    ///\returns std::size_t with the amount of tabs.
+    size_t getNumTabs(){return guiGroups.size(); }
     
     ///\brief Returns the option gui using the option's  name
     ///\param name the option name you want to get
     ///\returns an ofxGuiTabsOption pointer
-    ofxGuiTabsOption* getOptionByName(const string& name);
+    ofxGuiTabsOption* getTabByName(const string& name);
     
-    ///\brief Returns the option gui using the option's  value
-    ///\param value the option value you want to get
-    ///\returns an ofxGuiTabsOption pointer
-    ofxGuiTabsOption* getOptionByValue(const T& value);
     
-    ///\brief Returns the option gui using the option's index
-    ///\param index the option's index you want to get
-    ///be careful with this as the index only takes into accout the options, but not any nested dropdown there might be. It is safer to get by name or value.
-    ///\returns an ofxGuiTabsOption pointer
-    ofxGuiTabsOption* getOptionByIndex(const size_t& index);
+    const vector<string> & getTabNames();
+    
+    
+    ofxGuiGroup * getCurrentTabGroup();
+    ofxGuiGroup * getTabGroup(const string & name);
+    
+    const string& getSelectedTabName();
     
 #ifdef USE_OFX_GUI_TOOLTIP
 
@@ -293,40 +188,36 @@ public:
     // ----------------- Tooltips
     // ---------------------------------------------------
     
-    ///\brief set tooltips for this dropdown.
-    ///If there is no tooltip data for any of the tooltip options, including nested dropdowns
+    ///\brief set tooltips for this tabs.
+    ///If there is no tooltip data for any of the tooltip options, including nested tabss
     ///the json object will get populated with empty strings so it is easier to fill out.
     ///Make sure to save the json back to disk in order to save this auto generated json.
     ///\param json the json object containing the tooltip data
     virtual void setupTooltip(ofJson & json) override;
     
-    ///\ reset all tooltips. This works recursively with any nested dropdown
+    ///\ reset all tooltips. This works recursively with any nested tabs
     virtual void resetTooltips() override;
     
-    
     ///\brief Add a tooltip for the passed value
-    ///\param value The value for which you want to add tthe tooltip
-    void addTooltip(T value, const string& text);
-    
-    ///\brief Add a tooltip for the passed value
-    ///\param option The name for the option for which you want to add tthe tooltip
-    void addTooltip(const string& option, const string& text);
+    ///\param tabName The name of the tab for which you want to add tthe tooltip
+    ///\param toolTipText the text of the tooltip to add
+    void addTooltip(const string& tabName, const string& toolTipText);
     
     
-    ///\brief Enable tooltips. This works recursively with any nested dropdown
+    ///\brief Enable tooltips. This works recursively with any nested tabs
     virtual void enableTooltip() override;
 
-    ///\brief Disable tooltips. This works recursively with any nested dropdown
+    ///\brief Disable tooltips. This works recursively with any nested tabs
     virtual void disableTooltip() override;
         
     ///\brief Draw the tooltips.
-    ///This needs to be called independently and after the dropdown and gui are drawn,
+    ///This needs to be called independently and after the tabs and gui are drawn,
     ///otherwise the tooltips might get occluded by the gui.
     virtual void drawTooltip() override;
     
 #endif
-    
-    
+
+
 protected:
 	
 #ifdef USE_OFX_GUI_TOOLTIP
@@ -335,77 +226,51 @@ protected:
     }
 #endif
     
-    
-    
-    ofEventListeners paramsListeners;
-    
-
-
-	ofParameter<bool> bMultiselection = { "Multi Selection", false};
-    
-
 	
 	virtual bool setValue(float mx, float my, bool bCheck) override;
-	
-	
-	int myMouseEventsPriority;
-	
+		
 	void disableSiblings(ofxGuiTabsOption* child);
 		
 	virtual void generateDraw() override;
 		
 	virtual void render() override;
-
-	vector<string> options;
-    vector<T> values;
-	
-	
-	void optionChanged( const void * sender, size_t&);
-
 		
-	void selectedValueChanged(T & newvalue);
-	
+	void selectedTabChanged(string & name);
     
+    void tabChanged(string & name);
+	
 
 	ofEventListeners optionsListeners;
 
     ofEventListeners mouseListeners;
-	
 
     ofEventListener setlectedValueListener;
-    
-	ofVboMesh optionTextMesh;
-	
-	std::string selectedOption;
-		
 	
     ofPath bg;
-    
-    bool keyReleased(ofKeyEventArgs&);
+        
     
 private:
-
-    ofEventListener keysListener;
-    bool bListeningKeys = false;
     
-
-	std::vector<unique_ptr<ofxGuiTabsOption>> ownedChildren;
+    map<string, shared_ptr<ofxGuiGroup>> guiGroups;
+    map<string, shared_ptr<ofxGuiTabsOption>> tabs;
+    vector<string> tabNames;
+    vector<ofxGuiGroup*> groups;
+    vector<ofxGuiTabsOption*> tabsCollection;
     
     bool bRegisteredForMouseEvents = false;
     bool bIsSetup = false;
     bool bGuiActive = false;
     
     
-    void setNewChild(ofxGuiTabsOption * newChild, const T& value, const string& option, size_t index);
+    bool bIgnoreSelectedTabChange = false;
+
+    ///\brief selected value parameter. This is the one that actually changes when a tab gets selected.
+    ofParameter<string> selectedTab;
+
     
-    bool bIgnoreSelectedValueChange = false;
     
 };
 
 
 
 
-
-
-typedef ofxGuiTabs_<string> ofxGuiTabs;
-typedef ofxGuiTabs_<int> ofxGuiIntTabs;

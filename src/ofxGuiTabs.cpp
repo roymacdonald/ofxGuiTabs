@@ -11,45 +11,42 @@
 #include "ofGraphics.h"
 #include "ofxGui.h"
 
+ofxGuiTabs::ofxGuiTabs(){
+#ifdef USE_OFX_GUI_TOOLTIP
+        guiElement = this;
+#endif
+}
 //--------------------------------------------------------------
-template<class T>
-ofxGuiTabs_<T>::ofxGuiTabs_(ofParameter<T> param, float width , float height){
+ofxGuiTabs::ofxGuiTabs(ofParameter<string> param, float width , float height){
     setup(param,width,height);
 }
-template<class T>
-ofxGuiTabs_<T>::ofxGuiTabs_(ofParameter<T> param, const map<T,string>& dropDownOptions, float width , float height){
+
+ofxGuiTabs::ofxGuiTabs(ofParameter<string> param, const std::vector<string> & tabsNames, float width , float height){
     setup(param,width,height);
-    add(dropDownOptions);
+    add(tabsNames);
 }
-template<class T>
-ofxGuiTabs_<T>::ofxGuiTabs_(ofParameter<T> param, const std::vector<T> & dropDownOptions, float width , float height){
-    setup(param,width,height);
-    add(dropDownOptions);
-}
-template<class T>
-ofxGuiTabs_<T>::ofxGuiTabs_(std::string name, float width, float height){
+
+ofxGuiTabs::ofxGuiTabs(std::string name, float width, float height){
     setup(name, width, height);
 }
 
-template<class T>
-ofxGuiTabs_<T>::~ofxGuiTabs_(){
+ofxGuiTabs::~ofxGuiTabs(){
     
 }
 
 //--------------------------------------------------------------
-template<class T>
-ofxGuiTabs_<T> * ofxGuiTabs_<T>::setup(std::string name, float width , float height ){
+ofxGuiTabs * ofxGuiTabs::setup(std::string name, float width , float height ){
 #ifdef USE_OFX_GUI_TOOLTIP
         guiElement = this;
 #endif
     if (bIsSetup){
-        ofLogWarning("ofxGuiTabs_<T>::setup" ) << "Dropdown \"name\" is already setup. Nothing will be done";
+        ofLogWarning("ofxGuiTabs::setup" ) << "Dropdown \"name\" is already setup. Nothing will be done";
         return this;
     }
     bGuiActive = false;
 	
-	selectedValue.setName(name);
-	setlectedValueListener = selectedValue.newListener(this, &ofxGuiTabs_<T>::selectedValueChanged);
+    selectedTab.setName(name);
+	setlectedValueListener = selectedTab.newListener(this, &ofxGuiTabs::selectedTabChanged);
 	
     
     bIsSetup = true;
@@ -58,235 +55,179 @@ ofxGuiTabs_<T> * ofxGuiTabs_<T>::setup(std::string name, float width , float hei
 }
 
 //--------------------------------------------------------------
-template<class T>
-ofxGuiTabs_<T> * ofxGuiTabs_<T>::setup(ofParameter<T> param, float width, float height){
+ofxGuiTabs * ofxGuiTabs::setup(ofParameter<string> param, float width, float height){
     if (bIsSetup){
-        ofLogWarning("ofxGuiTabs_<T>::setup" ) << "Dropdown \"name\" is already setup. Nothing will be done";
+        ofLogWarning("ofxGuiTabs::setup" ) << "Dropdown \"name\" is already setup. Nothing will be done";
         return this;
     }
-	selectedValue.makeReferenceTo(param);
+    selectedTab.makeReferenceTo(param);
 	return setup(param.getName(), width, height);
 }
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::selectedValueChanged(T & newvalue){
-    if(bIgnoreSelectedValueChange) return;
-    cout << "ofxGuiTabs_<T>::selectedValueChanged " << newvalue << "\n";
-	auto it = find(values.begin(), values.end(), newvalue);
-	if(it != values.end()){// it was found. it should be found anyways but better to double check
-		auto index = std::distance(values.begin(), it);
-		setSelectedValueByIndex(index, true);
-		
-		
-//		auto element = dynamic_cast <ofxGuiTabsOption *>(group.getControl(options[index]));
-//		if(element){
-//			element->enableElement();
-//		}
-		setNeedsRedraw();
-	}
-	
-}
-//--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::setSelectedValueByIndex( const size_t& index, bool bNotify){
-    cout << "ofxGuiTabs_<T>::setSelectedValueByIndex " ;
-	if(index < values.size()){
-        bIgnoreSelectedValueChange = true;
-		selectedValue = values[index];
-        bIgnoreSelectedValueChange = false;
-		selectedOption = options[index];
-        cout << selectedValue ;
-		if(!bMultiselection){
-//			auto control = group.getControl(options[index]);
-//			if(control != nullptr){
-				disableSiblings(ownedChildren[index].get());
-//			}
-		}
-		if(bNotify) ofNotifyEvent(change_E, options[index], this);
-	}
-    cout << endl;
-}
-//--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::setSelectedValueByName( const std::string& valueName, bool bNotify){
+void ofxGuiTabs::selectedTabChanged(string & name){
+    cout << "ofxGuiTabs::selectedTabChanged " << name << boolalpha << bIgnoreSelectedTabChange << endl;
+    if(bIgnoreSelectedTabChange) return;
 
-		auto it = find(options.begin(), options.end(), valueName);
-		if(it != options.end()){// it was found. it should be found anyways but better to double check
-			auto index = std::distance(options.begin(), it);
-			setSelectedValueByIndex(index, bNotify);
-		}
+    setSelectedTab(name);
+		
+//	}
 	
 }
+
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::optionChanged(const void * sender, size_t& b){
-//    if(b){
-        cout << "ofxGuiTabs_<T>::optionChanged\n";
-        if(sender){
-            //        auto s = ( ofxGuiTabsOption*)(sender);
-            
-            
-//            int foundIndex = -1;
-//            for(int i = 0; i <ownedChildren.size(); i++){
-//                //            for(auto& c : ownedChildren){
-//                auto& c = ownedChildren[i];
-//                if(c.get() == sender){
-//                    //				if(ownedChildren[i]->getParameter().getInternalObject() == ((ofParameter<bool> *)(sender))->getInternalObject()){
-//
-//                    foundIndex = i;
-//                    break;
-//                }
-//            }
-//            if(foundIndex >= 0){
-                cout << "Found index " << b << endl;
-                setSelectedValueByIndex(b, true);
-//            }
-//        }
-    }else{
-        ofLogVerbose("ofxGuiTabs_::optionChanged(...)")  << "sender = null";
+void ofxGuiTabs::tabChanged(string & name){
+    cout << "ofxGuiTabs::tabChanged " << name << boolalpha << bIgnoreSelectedTabChange << endl;
+    
+    bIgnoreSelectedTabChange = true;
+    if(setSelectedTab(name)){
+        
     }
-}
-//--------------------------------------------------------------
-template<class T>
-ofxGuiTabs_<T> * ofxGuiTabs_<T>::add(const T& value) {
-    return add(value, ofToString(value));
+    bIgnoreSelectedTabChange = false;
 }
 
 //--------------------------------------------------------------
-template<>
-ofxGuiTabs_<string> * ofxGuiTabs_<string>::add(const string& value) {
-    return add(value, value);
-}
+bool ofxGuiTabs::setSelectedTab( const std::string& tabName){
 
+    if(tabs.count(tabName)){
+        cout << "ofxGuiTabs::setSelectedTab " << tabName << boolalpha << bIgnoreSelectedTabChange << endl;
+//        bIgnoreSelectedTabChange = true;
+//        selectedTab = tabName;
+        selectedTab.setWithoutEventNotifications(tabName);
+//        bIgnoreSelectedTabChange = false;
+        
+        disableSiblings(tabs[tabName].get());
+        
+        setNeedsRedraw();
+        return true;
+    }
+    return false;
+}
+////--------------------------------------------------------------
+//void ofxGuiTabs::optionChanged(const void * sender, size_t& b){
+////    if(b){
+////        cout << "ofxGuiTabs::optionChanged\n";
+//        if(sender){
+//
+////                cout << "Found index " << b << endl;
+//                setSelectedValueByIndex(b, true);
+//    }else{
+//        ofLogVerbose("ofxGuiTabs::optionChanged(...)")  << "sender = null";
+//    }
+//}
 
 //--------------------------------------------------------------
-template<class T>
-ofxGuiTabs_<T> * ofxGuiTabs_<T>::add(const T& value, const string& option) {
-    options.push_back(option);
-    values.push_back(value);
-    	
-	ownedChildren.emplace_back(make_unique<ofxGuiTabsOption>());
-	auto o = ownedChildren.back().get();
-	if(o){
-        setNewChild(o, value, option, ownedChildren.size() -1);
-//		o->setup(option, value, value == selectedValue.get());
-		optionsListeners.push(o->changed_E.newListener(this, &ofxGuiTabs_::optionChanged));
+ofxGuiGroup * ofxGuiTabs::add(const string& tabName) {
+
+//    options.push_back(option);
+//    values.push_back(value);
+    
+    if(guiGroups.count(tabName) == 0){
+        guiGroups[tabName] = make_shared<ofxGuiGroup>(tabName);
+        tabs[tabName] = make_shared<ofxGuiTabsOption>(tabName);
+        tabNames.push_back(tabName);
+        groups.push_back(guiGroups[tabName].get());
+        tabsCollection.push_back(tabs[tabName].get());
+        
+        optionsListeners.push(tabs[tabName]->selection_E.newListener(this, &ofxGuiTabs::tabChanged));
     
         setNeedsRedraw();
-	}else
-	{
-		ofLogError("ofxGuiTabs_<T>::add") << "created children is nullptr";
-	}
+        
+//        return guiGroups[tabName].get();
 	
-
-    return this;
-}
-//--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::setNewChild(ofxGuiTabsOption * newChild, const T& value, const string& option, size_t index){
-    if(newChild)
-    {
-        newChild->setup(option, value, value == selectedValue.get());
+    }else{
+        
+        ofLogWarning("ofxGuiTabs::add") << "There is already a group named " << tabName << endl;
     }
-}
-//--------------------------------------------------------------
-template<>
-void ofxGuiTabs_<string>::setNewChild(ofxGuiTabsOption * newChild, const string& value, const string& option, size_t index){
-    if(newChild)
-    {
-        newChild->setup(option, index, value == selectedValue.get());
+    if(tabs.size() == 1){
+        setSelectedTab(tabNames[0]);
     }
+    return guiGroups[tabName].get();
+//    return nullptr;
 }
 
 //--------------------------------------------------------------
-template<class T>
-ofxGuiTabs_<T> * ofxGuiTabs_<T>::add(const vector<T> & options){
+void ofxGuiTabs::add(const vector<string> & options){
 	for(auto& option: options){
 		add(option);
 	}
-	return this;
 }
+
 //--------------------------------------------------------------
-template<class T>
-ofxGuiTabs_<T> * ofxGuiTabs_<T>::add(const map<T,string> & options){
-    for(auto& option: options){
-        add(option.first, option.second);
-    }
-    return this;
-}
-//--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::clear(){
-//	group.clear();
-	ownedChildren.clear();
+void ofxGuiTabs::clear(){
+    guiGroups.clear();
+    tabs.clear();
     optionsListeners.unsubscribeAll();
 
-}
-//--------------------------------------------------------------
-template<class T>
-string ofxGuiTabs_<T>::getOptionAt(size_t index){
-	if(index < ownedChildren.size()){
-        if(ownedChildren[index]){
-            return ownedChildren[index]->getName();
-        }
-//		return group.getControl(index)->getName();
-	}
-	ofLogNotice("ofxGuiTabs_::getOptionAt", "index is out of bounds");
-	return "";
+    tabNames.clear();
+    groups.clear();
+    tabsCollection.clear();
 }
 
+
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::disableSiblings(ofxGuiTabsOption * child){
+void ofxGuiTabs::disableSiblings(ofxGuiTabsOption * child){
     
-    for(auto& element : ownedChildren){
-        if(element){
-            if(child != element.get()){
-                element->disableElement();
-            }else{
-                element->enableElement();
-            }
+    for(auto& element : tabs){
+        if(element.second){
+            element.second->setSelected(child == element.second.get());
+//            if(child != element.get()){
+//                element->deselect();
+//            }else{
+//                element->select();
+//            }
         }
     }
 }
 
 
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::deselect(){
-	for(auto&c: ownedChildren)
+void ofxGuiTabs::deselect(){
+	for(auto&c: tabs)
 	{
-		if(c) c->deselect();
+		if(c.second) c.second->deselect();
 	}
-	selectedOption = "";
+	selectedTab = "";
 }
 
 //--------------------------------------------------------------
-template<class T>
-bool ofxGuiTabs_<T>::mouseReleased(ofMouseEventArgs & args){
+bool ofxGuiTabs::mouseReleased(ofMouseEventArgs & args){
     if(!isGuiDrawing()){
         bGuiActive = false;
         return false;
     }
     if(bGuiActive){
         bGuiActive = false;
-        for(auto& c: ownedChildren){
-            ofMouseEventArgs a = args;
-            if( c && c->mouseReleased(a)){
+        ofMouseEventArgs a = args;
+        for(auto& c: tabs){
+            
+            if( c.second && c.second->mouseReleased(a)){
                 return true;
             }
         }
-        if(b.inside(ofPoint(args.x, args.y))){
-            return true;
-        }else{
-            return false;
+        
+        auto g = getCurrentTabGroup();
+        if(g){
+            
+            if (g->mouseReleased(a)){
+                return true;
+            }
         }
+        
+        
+        
+        
+//        if(
+        return b.inside(args.x, args.y);
+//           ){
+//            return true;
+//        }else{
+//            return false;
+//        }
     }
     return false;
 }
 //--------------------------------------------------------------
-template<class T>
-bool ofxGuiTabs_<T>::mousePressed(ofMouseEventArgs & args){
+bool ofxGuiTabs::mousePressed(ofMouseEventArgs & args){
     if(!isGuiDrawing())return false;
     
     if(setValue(args.x, args.y, true)){
@@ -294,32 +235,46 @@ bool ofxGuiTabs_<T>::mousePressed(ofMouseEventArgs & args){
     }
     auto attended = false;
     ofMouseEventArgs a = args;
-    for(auto& c: ownedChildren){
-        if( c && c->mousePressed(a)){
+    for(auto& c: tabs){
+        if( c.second && c.second->mousePressed(a)){
             attended = true;
         }
     }
+    
+    auto g = getCurrentTabGroup();
+    if(g){
+        attended |= g->mousePressed(a);
+    }
+    
+    
     return attended || b.inside(args);
 }
 //--------------------------------------------------------------
-template<class T>
-bool ofxGuiTabs_<T>::mouseMoved(ofMouseEventArgs & args){
+bool ofxGuiTabs::mouseMoved(ofMouseEventArgs & args){
     if(!isGuiDrawing())return false;
     ofMouseEventArgs a = args;
-    for(auto& c: ownedChildren){
-        if( c && c->mouseMoved(a)){
+    for(auto& c: tabs){
+        if( c.second && c.second->mouseMoved(a)){
             return true;
         }
     }
-    if(b.inside(args)){
-        return true;
-    }else{
-        return false;
+    
+    auto g = getCurrentTabGroup();
+    if(g){
+        return g->mouseMoved(a);
     }
+    
+    
+//    if(
+    return b.inside(args);
+//    ){
+//        return true;
+//    }else{
+//        return false;
+//    }
 }
 //--------------------------------------------------------------
-template<class T>
-bool ofxGuiTabs_<T>::mouseDragged(ofMouseEventArgs & args){
+bool ofxGuiTabs::mouseDragged(ofMouseEventArgs & args){
 	
     if(!isGuiDrawing())return false;
     if(bGuiActive){
@@ -327,27 +282,38 @@ bool ofxGuiTabs_<T>::mouseDragged(ofMouseEventArgs & args){
             return true;
         }
         ofMouseEventArgs a = args;
-        for(auto& c: ownedChildren){
-            if( c && c->mouseDragged(a)){
+        for(auto& c: tabs){
+            if( c.second && c.second->mouseDragged(a)){
                 return true;
             }
         }
+        auto g = getCurrentTabGroup();
+        if(g){
+            return g->mouseDragged(a);
+        }
+        
     }
     return false;
 	
 	
 }
 //--------------------------------------------------------------
-template<class T>
-bool ofxGuiTabs_<T>::mouseScrolled(ofMouseEventArgs & args){
+bool ofxGuiTabs::mouseScrolled(ofMouseEventArgs & args){
     if(!isGuiDrawing())return false;
     ofMouseEventArgs a = args;
 //    for(std::size_t i = 0; i < collection.size(); i++){
-    for(auto& c: ownedChildren){
-        if( c && c->mouseScrolled(a)){
+    for(auto& c: tabs){
+        if( c.second && c.second->mouseScrolled(a)){
             return true;
         }
     }
+
+    auto g = getCurrentTabGroup();
+    if(g){
+        return g->mouseScrolled(a);
+    }
+    
+    
     if(b.inside(args)){
         return true;
     }else{
@@ -358,17 +324,9 @@ bool ofxGuiTabs_<T>::mouseScrolled(ofMouseEventArgs & args){
 
 
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::generateDraw(){
+void ofxGuiTabs::generateDraw(){
 	
 	
-//    cout << "generateDraw\n";
-	
-//	auto h = b.getHeight()/2;
-//	auto x2 = b.getMaxX();
-//
-//	auto y = b.getY();
-    
     float x = b.getMinX() + textPadding;
     float y = b.getMinY() + textPadding;
     float h = 0;
@@ -377,9 +335,9 @@ void ofxGuiTabs_<T>::generateDraw(){
     ofRectangle bb = b;
     bb.height = 0;
     
-    for(auto &c: ownedChildren){
-        if(c){
             
+    for(auto& c: tabsCollection){
+        if(c){
             auto shape = c->getShape();
             shape.x = x;
             shape.y = y;
@@ -395,66 +353,39 @@ void ofxGuiTabs_<T>::generateDraw(){
     }
     bb.height += textPadding;
 	
+    auto g = getCurrentTabGroup();
+    if(g){
+        g ->setPosition(bb.getBottomLeft());
+        bb.growToInclude(g->getShape());
+    }
+    
+    
     if(bb != b){
         setShape(bb);
     }
-//    bg.clear();
-//    bg.setFillColor(thisBackgroundColor);
-//    bg.setFilled(true);
-//    bg.rectangle(b);
-    
-	
-//	optionTextMesh = getTextMesh(selectedOption, x2 - getTextBoundingBox(selectedOption, 0, 0).width - textPadding , getTextVCenteredInRect(optionsTextRect));
-//	ofRectangle textRect = b;
-//	textRect.width -= h*2.5;
-//	textRect.x += h*1.5;
-//	ofRemove(optionTextMesh.getVertices(), [&](const glm::vec3& p){
-//		return !textRect.inside(p);
-//	});	
-	
 }
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::render(){
-//    bg.draw();
-    for(auto& c: ownedChildren){
-        if(c) c->draw();
+void ofxGuiTabs::render(){
+
+    for(auto& c: tabs){
+        if(c.second) c.second->draw();
     }
-//    group.draw();
-//	arrow.draw();/
-//	ofSetColor(thisTextColor, 200);
-//
-//	bindFontTexture();
-//	optionTextMesh.draw();
-//	unbindFontTexture();
-	
+    
+    auto g = getCurrentTabGroup();
+    if(g){
+        g->draw();
+    }
+    
 }
 
 //--------------------------------------------------------------
-template<class T>
-ofAbstractParameter & ofxGuiTabs_<T>::getParameter(){
-	return selectedValue;
+ofAbstractParameter & ofxGuiTabs::getParameter(){
+	return selectedTab;
 }
 
 
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::enableMultipleSelection(){
-	bMultiselection = true;
-}
-//--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::disableMultipleSelection(){
-	bMultiselection = false;
-}
-//--------------------------------------------------------------
-template<class T>
-bool ofxGuiTabs_<T>::isEnabledMultipleSelection(){
-	return bMultiselection;
-}
-//--------------------------------------------------------------
-template<class T>
-bool ofxGuiTabs_<T>::setValue(float mx, float my, bool bCheck){
+bool ofxGuiTabs::setValue(float mx, float my, bool bCheck){
     
     if(!isGuiDrawing()){
         bGuiActive = false;
@@ -468,13 +399,14 @@ bool ofxGuiTabs_<T>::setValue(float mx, float my, bool bCheck){
         }
     }
 
+    
+    
     return false;
     
 }
 
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::registerMouseEvents(){
+void ofxGuiTabs::registerMouseEvents(){
     if(bRegisteredForMouseEvents == true){
         return; // already registered.
     }
@@ -482,18 +414,16 @@ void ofxGuiTabs_<T>::registerMouseEvents(){
 
     int prio = int(defaultEventsPriority) - 100;
 
-    mouseListeners.push(ofEvents().mouseDragged.newListener(this, &ofxGuiTabs_<T>::mouseDragged, prio));
-    mouseListeners.push(ofEvents().mouseMoved.newListener(this, &ofxGuiTabs_<T>::mouseMoved, prio));
-    mouseListeners.push(ofEvents().mousePressed.newListener(this, &ofxGuiTabs_<T>::mousePressed, prio));
-    mouseListeners.push(ofEvents().mouseReleased.newListener(this, &ofxGuiTabs_<T>::mouseReleased, prio));
-    mouseListeners.push(ofEvents().mouseScrolled.newListener(this, &ofxGuiTabs_<T>::mouseScrolled, prio));
+    mouseListeners.push(ofEvents().mouseDragged.newListener(this, &ofxGuiTabs::mouseDragged, prio));
+    mouseListeners.push(ofEvents().mouseMoved.newListener(this, &ofxGuiTabs::mouseMoved, prio));
+    mouseListeners.push(ofEvents().mousePressed.newListener(this, &ofxGuiTabs::mousePressed, prio));
+    mouseListeners.push(ofEvents().mouseReleased.newListener(this, &ofxGuiTabs::mouseReleased, prio));
+    mouseListeners.push(ofEvents().mouseScrolled.newListener(this, &ofxGuiTabs::mouseScrolled, prio));
 
 }
 
-
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::unregisterMouseEvents(){
+void ofxGuiTabs::unregisterMouseEvents(){
     if(bRegisteredForMouseEvents == false){
         return; // not registered.
     }
@@ -503,45 +433,10 @@ void ofxGuiTabs_<T>::unregisterMouseEvents(){
     bRegisteredForMouseEvents = false;
 }
 
-template<class T>
-bool ofxGuiTabs_<T>::keyReleased(ofKeyEventArgs& args){
-//    cout << "keys modifiers: " << args.modifiers << endl;
-    if(args.hasModifier(OF_KEY_SUPER)){
-        int k = args.key - '1';
-        if(k >= 0 && k < 9 && k < values.size()){
-            setSelectedValueByIndex(k, true);
-            return true;
-        }
-    }
-    return false;
-}
-
-
-template<class T>
-void ofxGuiTabs_<T>::enableKeys(){
-    if(!bListeningKeys){
-        keysListener = ofEvents().keyReleased.newListener(this, &ofxGuiTabs_::keyReleased);
-        bListeningKeys = true;
-    }
-}
-template<class T>
-void ofxGuiTabs_<T>::disableKeys(){
-    if(bListeningKeys){
-        keysListener.unsubscribe();
-        bListeningKeys = false;
-    }
-}
-template<class T>
-bool ofxGuiTabs_<T>::isKeysEnabled(){
-    return bListeningKeys;
-}
 
 #ifdef USE_OFX_GUI_TOOLTIP
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::setupTooltip(ofJson &json){
-//    cout << "ofxGuiTabs_<T>::setupTooltip " << getName() << "  "<< ownedChildren.size() <<endl;
-//    json.dump(4) << "\n";
+void ofxGuiTabs::setupTooltip(ofJson &json){
     if(!json.contains(getName())){
         json[getName()] = ofJson::object({});
 //        cout << "Created json object\n";
@@ -550,116 +445,81 @@ void ofxGuiTabs_<T>::setupTooltip(ofJson &json){
     auto& j = json[getName()];
 //    cout << j.dump(4);
     
-    for(auto&c: ownedChildren)
+    for(auto&c: tabs)
     {
-        if(c) c->setupTooltip(j);
+        if(c.second) c.second->setupTooltip(j);
     }
     enableTooltip();
 }
+
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::resetTooltips(){
+void ofxGuiTabs::resetTooltips(){
     
-    for(auto&c: ownedChildren)
+    for(auto&c: tabs)
     {
-        if(c) c->removeTooltip();
+        if(c.second) c.second->removeTooltip();
     }
 }
 
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::addTooltip(T value, const string& text){
-    auto o = getOptionByValue(value);
-    if(o) o->setTooltipText(text);
+void ofxGuiTabs::addTooltip(const string& tabName, const string& toolTipText){
+    auto o = getTabByName(tabName);
+    if(o) o->setTooltipText(toolTipText);
 }
 
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::addTooltip(const string& option, const string& text){
-    auto o = getOptionByName(option);
-    if(o) o->setTooltipText(text);
-}
-
-//--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::enableTooltip(){
+void ofxGuiTabs::enableTooltip(){
     if(!bTooltipsEnabled){
         bTooltipsEnabled = true;
-        for(auto&c: ownedChildren)
+        for(auto&c: tabs)
         {
-            if(c) c->enableTooltip();
+            if(c.second) c.second->enableTooltip();
         }
     }
 }
+
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::disableTooltip(){
+void ofxGuiTabs::disableTooltip(){
     if(bTooltipsEnabled){
         bTooltipsEnabled = false;
-        for(auto&c: ownedChildren)
+        for(auto&c: tabs)
         {
-            if(c) c->disableTooltip();
+            if(c.second) c.second->disableTooltip();
         }
     }
 }
 
 //--------------------------------------------------------------
-template<class T>
-void ofxGuiTabs_<T>::drawTooltip(){
+void ofxGuiTabs::drawTooltip(){
     if(bTooltipsEnabled){
-        for(auto&c: ownedChildren)
+        for(auto&c: tabs)
         {
-            if(c) c->drawTooltip();
+            if(c.second) c.second->drawTooltip();
         }
     }
 }
 #endif
 
-//--------------------------------------------------------------
-template<class T>
-ofxGuiTabsOption* ofxGuiTabs_<T>::getOptionByName(const string& name){
-    auto it = find(options.begin(), options.end(), name);
-    if(it != options.end()){// it was found. it should be found anyways but better to double check
-        auto index = std::distance(options.begin(), it);
-        return getOptionByIndex(index);
+ofxGuiGroup * ofxGuiTabs::getCurrentTabGroup(){
+    return getTabGroup(selectedTab.get());
+}
+
+ofxGuiGroup * ofxGuiTabs::getTabGroup(const string & name){
+    if(guiGroups.count(name)){
+        return guiGroups[name].get();
     }
     return nullptr;
 }
+    
 //--------------------------------------------------------------
-template<class T>
-ofxGuiTabsOption* ofxGuiTabs_<T>::getOptionByValue(const T& value){
-    auto it = find(values.begin(), values.end(), value);
-    if(it != values.end()){// it was found. it should be found anyways but better to double check
-        auto index = std::distance(values.begin(), it);
-        return getOptionByIndex(index);
-    }
-    return nullptr;
-}
-//--------------------------------------------------------------
-template<class T>
-ofxGuiTabsOption* ofxGuiTabs_<T>::getOptionByIndex(const size_t& index){
-    if(index < ownedChildren.size()) return ownedChildren[index].get();
-    return nullptr;
+ofxGuiTabsOption* ofxGuiTabs::getTabByName(const string& name){
+    if(tabs.count(name) == 0) return nullptr;
+    return tabs[name].get();
 }
 
-
-
-
-template class ofxGuiTabs_<string>;
-//template class ofxGuiTabs_<int>;
-
-template class ofxGuiTabs_<int8_t>;
-template class ofxGuiTabs_<uint8_t>;
-template class ofxGuiTabs_<int16_t>;
-template class ofxGuiTabs_<uint16_t>;
-template class ofxGuiTabs_<int32_t>;
-template class ofxGuiTabs_<uint32_t>;
-template class ofxGuiTabs_<int64_t>;
-template class ofxGuiTabs_<uint64_t>;
-
-//for some reason osx errors if this isn't defined
-#ifdef TARGET_OSX
-template class ofxGuiTabs_<typename std::conditional<std::is_same<uint32_t, size_t>::value || std::is_same<uint64_t, size_t>::value, bool, size_t>::type>;
-#endif
-
-
+const vector<string> & ofxGuiTabs::getTabNames(){
+    return tabNames;
+}
+const string& ofxGuiTabs::getSelectedTabName(){
+    return selectedTab.get();
+}
