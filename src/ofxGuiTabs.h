@@ -274,6 +274,10 @@ private:
 
     ///\brief selected value parameter. This is the one that actually changes when a tab gets selected.
     ofParameter<string> selectedTab;
+    
+    
+    // this is used esentially to hold the parameter groups of the tabs so it can be saved and loaded by ofxGui
+    ofParameterGroup groupsParam;
 
     
     

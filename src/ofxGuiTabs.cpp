@@ -48,9 +48,8 @@ ofxGuiTabs * ofxGuiTabs::setup(std::string name, float width , float height ){
     selectedTab.setName(name);
 	setlectedValueListener = selectedTab.newListener(this, &ofxGuiTabs::selectedTabChanged);
 	
-    
+    groupsParam.setName(name);
     bIsSetup = true;
-    
 	return this;
 }
 
@@ -60,6 +59,7 @@ ofxGuiTabs * ofxGuiTabs::setup(ofParameter<string> param, float width, float hei
         ofLogWarning("ofxGuiTabs::setup" ) << "Dropdown \"name\" is already setup. Nothing will be done";
         return this;
     }
+    
     selectedTab.makeReferenceTo(param);
 	return setup(param.getName(), width, height);
 }
@@ -103,6 +103,8 @@ ofxGuiGroup * ofxGuiTabs::newTab(const string& tabName) {
         tabNames.push_back(tabName);
         groups.push_back(guiGroups[tabName].get());
         tabsCollection.push_back(tabs[tabName].get());
+        
+        groupsParam.add(guiGroups[tabName]->getParameter());
         
         optionsListeners.push(tabs[tabName]->selection_E.newListener(this, &ofxGuiTabs::tabChanged));
     
@@ -333,7 +335,7 @@ void ofxGuiTabs::render(){
 
 //--------------------------------------------------------------
 ofAbstractParameter & ofxGuiTabs::getParameter(){
-	return selectedTab;
+	return groupsParam;
 }
 
 
