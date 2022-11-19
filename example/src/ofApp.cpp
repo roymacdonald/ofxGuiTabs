@@ -3,32 +3,27 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 	
-	gui.setup("DROPDOWNS", "DropdownsSettings.xml");
-	gui.setPosition(20,20);
+	gui.setup("TabsGui", "TabsSettings.json");
 	
-    options.setName("STR tabs");
-	strTabs =  make_unique<ofxGuiTabs>(options);
-      
-    intOptions.setName("INT Options");
-    intTabs =  make_unique<ofxGuiIntTabs>(intOptions);
-    
-	
-    
-	ofSetWindowPosition(0, 0);
-//	ofSetWindowShape(ofGetScreenWidth(), 500);
-	
-	
-	
-	
-	for(int i = 0; i < 10; i++){
-			strTabs->add("String   "+ofToString(i));
-	}
-    for(int i = 0; i < 15; i++){
-            intTabs->add(i, "int  " + ofToString(i));
-    }
-	gui.add(strTabs.get());
-    gui.add(intTabs.get());
 
+    tabs.setup("Tabs");
+    
+    for(int i = 0; i < 15; i++){
+        auto group = tabs.newTab("int  " + ofToString(i));
+        size_t n = round(ofRandom(2, 5));
+        for(int p = 0; p < n; p++){
+            params.push_back(ofParameter<float>(ofToString(i)+ "-" + ofToString(p), ofRandom(1), 0,1));
+            if(group) group->add(params.back());
+        }
+    }
+    
+    listener = tabs.selection_E.newListener([](string& s){
+        cout << "Tab changed " << s << endl;
+    });
+    
+    gui.add(&tabs);
+
+    tabs.setSelectedTab(tabs.getTabNames()[0]);
     
 }
 
@@ -40,10 +35,7 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	gui.draw();
-	
-    ofDrawBitmapStringHighlight(ofToString(intOptions.get()), 20, ofGetHeight() - 50);
-    ofDrawBitmapStringHighlight(ofToString(options.get()), 20, ofGetHeight() - 70);
-    
+	    
 }
 
 //--------------------------------------------------------------
@@ -53,13 +45,11 @@ void ofApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-    if(key >= '0' && key <= '9'){
-        intOptions = key - '0';
-	}else if(key == 's'){
-		gui.saveToFile("DropdownsSettings.xml");
-	}else if(key == 'l'){
-		gui.loadFromFile("DropdownsSettings.xml");
-	}
+
+    if(key >= '1' && key - '1' < tabs.getTabNames().size()){
+        tabs.setSelectedTab(tabs.getTabNames()[key - '1']);
+    }
+    
 }
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){

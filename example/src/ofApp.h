@@ -24,13 +24,14 @@ class ofApp : public ofBaseApp{
 	
 	
 	ofxPanel gui;
-//	ofxGuiGroup gui;
-	
-	
-    ofParameter<string> options;//, options2;
-    ofParameter<int> intOptions;
-
-	unique_ptr<ofxGuiTabs> strTabs;
-    unique_ptr<ofxGuiIntTabs> intTabs;
+//    unique_ptr<ofxGuiTabs> tabs;
+    ofxGuiTabs tabs;
+    
+    ofEventListener listener;
+    
+    vector<ofParameter<float>> params;
+    
+    
+    
 	
 };
