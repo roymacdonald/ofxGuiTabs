@@ -23,7 +23,7 @@ ofxGuiTabs::ofxGuiTabs(ofParameter<string> param, float width , float height){
 
 ofxGuiTabs::ofxGuiTabs(ofParameter<string> param, const std::vector<string> & tabsNames, float width , float height){
     setup(param,width,height);
-    add(tabsNames);
+    newTabs(tabsNames);
 }
 
 ofxGuiTabs::ofxGuiTabs(std::string name, float width, float height){
@@ -65,62 +65,38 @@ ofxGuiTabs * ofxGuiTabs::setup(ofParameter<string> param, float width, float hei
 }
 //--------------------------------------------------------------
 void ofxGuiTabs::selectedTabChanged(string & name){
-    cout << "ofxGuiTabs::selectedTabChanged " << name << boolalpha << bIgnoreSelectedTabChange << endl;
+//    cout << "ofxGuiTabs::selectedTabChanged " << name << boolalpha << bIgnoreSelectedTabChange << endl;
     if(bIgnoreSelectedTabChange) return;
 
     setSelectedTab(name);
-		
-//	}
-	
 }
 
 //--------------------------------------------------------------
 void ofxGuiTabs::tabChanged(string & name){
-    cout << "ofxGuiTabs::tabChanged " << name << boolalpha << bIgnoreSelectedTabChange << endl;
-    
-    bIgnoreSelectedTabChange = true;
-    if(setSelectedTab(name)){
-        
-    }
-    bIgnoreSelectedTabChange = false;
+    setSelectedTab(name);
 }
 
 //--------------------------------------------------------------
 bool ofxGuiTabs::setSelectedTab( const std::string& tabName){
 
     if(tabs.count(tabName)){
-        cout << "ofxGuiTabs::setSelectedTab " << tabName << boolalpha << bIgnoreSelectedTabChange << endl;
-//        bIgnoreSelectedTabChange = true;
-//        selectedTab = tabName;
-        selectedTab.setWithoutEventNotifications(tabName);
-//        bIgnoreSelectedTabChange = false;
+        bIgnoreSelectedTabChange = true;
+        selectedTab = tabName;
+        bIgnoreSelectedTabChange = false;
         
         disableSiblings(tabs[tabName].get());
         
         setNeedsRedraw();
+        auto t = tabName;
+        ofNotifyEvent(selection_E, t, this);
         return true;
     }
     return false;
 }
-////--------------------------------------------------------------
-//void ofxGuiTabs::optionChanged(const void * sender, size_t& b){
-////    if(b){
-////        cout << "ofxGuiTabs::optionChanged\n";
-//        if(sender){
-//
-////                cout << "Found index " << b << endl;
-//                setSelectedValueByIndex(b, true);
-//    }else{
-//        ofLogVerbose("ofxGuiTabs::optionChanged(...)")  << "sender = null";
-//    }
-//}
 
 //--------------------------------------------------------------
-ofxGuiGroup * ofxGuiTabs::add(const string& tabName) {
+ofxGuiGroup * ofxGuiTabs::newTab(const string& tabName) {
 
-//    options.push_back(option);
-//    values.push_back(value);
-    
     if(guiGroups.count(tabName) == 0){
         guiGroups[tabName] = make_shared<ofxGuiGroup>(tabName);
         tabs[tabName] = make_shared<ofxGuiTabsOption>(tabName);
@@ -132,8 +108,6 @@ ofxGuiGroup * ofxGuiTabs::add(const string& tabName) {
     
         setNeedsRedraw();
         
-//        return guiGroups[tabName].get();
-	
     }else{
         
         ofLogWarning("ofxGuiTabs::add") << "There is already a group named " << tabName << endl;
@@ -146,9 +120,9 @@ ofxGuiGroup * ofxGuiTabs::add(const string& tabName) {
 }
 
 //--------------------------------------------------------------
-void ofxGuiTabs::add(const vector<string> & options){
+void ofxGuiTabs::newTabs(const vector<string> & options){
 	for(auto& option: options){
-		add(option);
+		newTab(option);
 	}
 }
 
@@ -166,15 +140,9 @@ void ofxGuiTabs::clear(){
 
 //--------------------------------------------------------------
 void ofxGuiTabs::disableSiblings(ofxGuiTabsOption * child){
-    
     for(auto& element : tabs){
         if(element.second){
             element.second->setSelected(child == element.second.get());
-//            if(child != element.get()){
-//                element->deselect();
-//            }else{
-//                element->select();
-//            }
         }
     }
 }
@@ -205,24 +173,16 @@ bool ofxGuiTabs::mouseReleased(ofMouseEventArgs & args){
             }
         }
         
-        auto g = getCurrentTabGroup();
+        auto g = getCurrentGuiGroup();
         if(g){
             
             if (g->mouseReleased(a)){
                 return true;
             }
         }
-        
-        
-        
-        
-//        if(
+
         return b.inside(args.x, args.y);
-//           ){
-//            return true;
-//        }else{
-//            return false;
-//        }
+
     }
     return false;
 }
@@ -241,7 +201,7 @@ bool ofxGuiTabs::mousePressed(ofMouseEventArgs & args){
         }
     }
     
-    auto g = getCurrentTabGroup();
+    auto g = getCurrentGuiGroup();
     if(g){
         attended |= g->mousePressed(a);
     }
@@ -259,19 +219,13 @@ bool ofxGuiTabs::mouseMoved(ofMouseEventArgs & args){
         }
     }
     
-    auto g = getCurrentTabGroup();
+    auto g = getCurrentGuiGroup();
     if(g){
         return g->mouseMoved(a);
     }
-    
-    
-//    if(
+
     return b.inside(args);
-//    ){
-//        return true;
-//    }else{
-//        return false;
-//    }
+
 }
 //--------------------------------------------------------------
 bool ofxGuiTabs::mouseDragged(ofMouseEventArgs & args){
@@ -287,7 +241,7 @@ bool ofxGuiTabs::mouseDragged(ofMouseEventArgs & args){
                 return true;
             }
         }
-        auto g = getCurrentTabGroup();
+        auto g = getCurrentGuiGroup();
         if(g){
             return g->mouseDragged(a);
         }
@@ -301,14 +255,13 @@ bool ofxGuiTabs::mouseDragged(ofMouseEventArgs & args){
 bool ofxGuiTabs::mouseScrolled(ofMouseEventArgs & args){
     if(!isGuiDrawing())return false;
     ofMouseEventArgs a = args;
-//    for(std::size_t i = 0; i < collection.size(); i++){
     for(auto& c: tabs){
         if( c.second && c.second->mouseScrolled(a)){
             return true;
         }
     }
 
-    auto g = getCurrentTabGroup();
+    auto g = getCurrentGuiGroup();
     if(g){
         return g->mouseScrolled(a);
     }
@@ -353,7 +306,7 @@ void ofxGuiTabs::generateDraw(){
     }
     bb.height += textPadding;
 	
-    auto g = getCurrentTabGroup();
+    auto g = getCurrentGuiGroup();
     if(g){
         g ->setPosition(bb.getBottomLeft());
         bb.growToInclude(g->getShape());
@@ -371,7 +324,7 @@ void ofxGuiTabs::render(){
         if(c.second) c.second->draw();
     }
     
-    auto g = getCurrentTabGroup();
+    auto g = getCurrentGuiGroup();
     if(g){
         g->draw();
     }
@@ -500,11 +453,11 @@ void ofxGuiTabs::drawTooltip(){
 }
 #endif
 
-ofxGuiGroup * ofxGuiTabs::getCurrentTabGroup(){
-    return getTabGroup(selectedTab.get());
+ofxGuiGroup * ofxGuiTabs::getCurrentGuiGroup(){
+    return getGuiGroup(selectedTab.get());
 }
 
-ofxGuiGroup * ofxGuiTabs::getTabGroup(const string & name){
+ofxGuiGroup * ofxGuiTabs::getGuiGroup(const string & name){
     if(guiGroups.count(name)){
         return guiGroups[name].get();
     }

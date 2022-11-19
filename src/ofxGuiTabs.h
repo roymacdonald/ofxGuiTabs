@@ -97,7 +97,7 @@ public:
     /// \brief add several tabs  at once.
     /// This will create new tabs.
     /// @param tabNames a vector of strings containing the names of all the tabs to create.
-    void newTab(const std::vector<string> & tabNames);
+    void newTabs(const std::vector<string> & tabNames);
     
 	    
 		
@@ -131,8 +131,12 @@ public:
         // ---------------------------------------------------
     // ----------------- Selection
     // ---------------------------------------------------
+    ///\brief Select a tab by its name
+    ///\param the name of the tab to select
+    ///\return boolean. true if there was a tab with the passed name and it got selected, false otherwise
 	bool setSelectedTab( const std::string& tabName);
 	
+    ///\brief Deselect all tabs. No gui group will be shown
 	void deselect() ;
     
     
@@ -153,16 +157,7 @@ public:
     // ---------------------------------------------------
     // ----------------- getters
     // ---------------------------------------------------
-    ///\brief returns the options for this tabs.
-    ///This does not include nested tabss.
-    ///\returns an std::vector<std::string> with the available options in the tabs. Each of these strings are what you see in the tabs.
-    
-//    const vector<string> & getOptions(){return options;}
-//
-//    ///\brief returns the values for this tabs.
-//    ///This does not include nested tabss.
-//    ///\returns an std::vector<T> with the value that is mapped to an option. Values and options share their index.
-//    const vector<T> & getValues(){return values;}
+
     
     ///\brief returns the number of tabs
     ///\returns std::size_t with the amount of tabs.
@@ -173,13 +168,22 @@ public:
     ///\returns an ofxGuiTabsOption pointer
     ofxGuiTabsOption* getTabByName(const string& name);
     
-    
+    ///\brief get all the names of the Tabs
+    ///\return std::vector containing all the names
     const vector<string> & getTabNames();
     
+    ///\brief Get the currently active gui group
+    ///\return pointer to the active ofxGuiGroup
+    ofxGuiGroup * getCurrentGuiGroup();
     
-    ofxGuiGroup * getCurrentTabGroup();
-    ofxGuiGroup * getTabGroup(const string & name);
     
+    ///\brief get a gui group by its name
+    ///\param name the name of the guigroup to get
+    ///\return pointer to an ofxGuiGroup. If there isn't a group with the passed name a nullptr will be returned.
+    ofxGuiGroup * getGuiGroup(const string & name);
+    
+    ///\brief get the name of the currently selected tab
+    ///\return std::string with the name of the currently selected tab
     const string& getSelectedTabName();
     
 #ifdef USE_OFX_GUI_TOOLTIP
@@ -187,6 +191,10 @@ public:
     // ---------------------------------------------------
     // ----------------- Tooltips
     // ---------------------------------------------------
+
+    /// Use ofxGuiTooltips to manage the tooltips of this addon
+    /// There is no extra code needed, Just add ofxGuiTooltips with project generator and these will become active
+    
     
     ///\brief set tooltips for this tabs.
     ///If there is no tooltip data for any of the tooltip options, including nested tabss
