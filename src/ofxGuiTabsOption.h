@@ -5,6 +5,9 @@
 #ifdef USE_OFX_GUI_TOOLTIP
 #include "ofxGuiTooltipBase.h"
 #endif
+#include "ofxGuiGroup.h"
+
+
 
 class ofxGuiTabsOption : public ofxBaseGui
 #ifdef USE_OFX_GUI_TOOLTIP
@@ -20,12 +23,8 @@ public:
     }
 	virtual ~ofxGuiTabsOption();
 	
-
-
-    ofxGuiTabsOption(ofParameter<bool> _bVal, float height = defaultHeight);
-    ofxGuiTabsOption(const std::string& tabName, bool _bVal = false, float height = defaultHeight);
-    ofxGuiTabsOption * setup(ofParameter<bool> _bVal, float height = defaultHeight);
-    ofxGuiTabsOption * setup(const std::string& tabName, bool _bVal, float height = defaultHeight);
+    ofxGuiTabsOption(const std::string& tabName, ofxGuiGroup* guiGroup);
+    ofxGuiTabsOption * setup(const std::string& tabName, ofxGuiGroup* guiGroup);
 	
 
 	virtual bool mouseMoved(ofMouseEventArgs & args) override;
@@ -47,6 +46,10 @@ public:
 
 	virtual ofAbstractParameter & getParameter() override;
 
+    ofxGuiGroup * guiGroup = nullptr;
+#ifdef USE_OFX_GUI_TOOLTIP
+    virtual void setupTooltip(ofJson & json, ofxGuiTooltip* tooltips) override;
+#endif
 
 protected:
 #ifdef USE_OFX_GUI_TOOLTIP
@@ -54,7 +57,7 @@ protected:
         return bIsOver;
     }
 #endif
-    size_t tabIndex;
+
     
 	void generateNameTextMesh(const ofRectangle& rect);
     

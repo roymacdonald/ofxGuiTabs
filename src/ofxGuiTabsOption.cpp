@@ -1,31 +1,36 @@
 #include "ofxGuiTabsOption.h"
 #include "ofGraphics.h"
 
+#ifdef USE_OFX_GUI_TOOLTIP
+#include "ofxGuiTooltip.h"
+#endif
 
 using namespace std;
 //-----------------------------------------------------------------------
-ofxGuiTabsOption::ofxGuiTabsOption(ofParameter<bool> _bVal, float height){
-	setup(_bVal, height);
-}
-ofxGuiTabsOption::ofxGuiTabsOption(const std::string& tabName, bool _bVal, float height){
-    setup(tabName, _bVal, height);
+ofxGuiTabsOption::ofxGuiTabsOption(const std::string& tabName, ofxGuiGroup* guiGroup){
+    setup(tabName, guiGroup);
 }
 
 //-----------------------------------------------------------------------
 ofxGuiTabsOption::~ofxGuiTabsOption(){}
 
+
 //-----------------------------------------------------------------------
-ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, float height){
+ofxGuiTabsOption * ofxGuiTabsOption::setup(const std::string& tabName, ofxGuiGroup* guiGroup){
+	value.set(tabName,false);
 #ifdef USE_OFX_GUI_TOOLTIP
         guiElement = this;
 #endif
-	b.x = 0;
-	b.y = 0;
-	b.height = height + textPadding*2;
-	bGuiActive = false;
-	value.makeReferenceTo(_bVal);
     
-    float tx = getTextBoundingBox(getName(), 0,0).width + (textPadding*4);
+    this->guiGroup = guiGroup;
+    
+    b.x = 0;
+    b.y = 0;
+    b.height = defaultHeight + textPadding*2;
+    bGuiActive = false;
+//    value.makeReferenceTo(_bVal);
+    
+    float tx = getTextBoundingBox(tabName, 0,0).width + (textPadding*4);
     if(tx  > defaultWidth){
         b.width = defaultWidth ;
     }else{
@@ -33,28 +38,18 @@ ofxGuiTabsOption * ofxGuiTabsOption::setup(ofParameter<bool> _bVal, float height
     }
     
     listener = value.newListener(this,&ofxGuiTabsOption::valueChanged);
-	registerMouseEvents();
-	setNeedsRedraw();
+    registerMouseEvents();
+    setNeedsRedraw();
 
-	return this;
+    return this;
 
-}
 
-//-----------------------------------------------------------------------
-ofxGuiTabsOption * ofxGuiTabsOption::setup(const std::string& toggleName, bool _bVal, float height){
-	value.set(toggleName,_bVal);
-	return setup(value, height);
 }
 
 //-----------------------------------------------------------------------
 bool ofxGuiTabsOption::mouseMoved(ofMouseEventArgs & args){
     bIsOver = (isGuiDrawing() && b.inside(args));
-    
-//	if(isGuiDrawing() && b.inside(args)){
-//		bIsOver = true;
-//	}else{
-//		bIsOver = false;
-//	}
+
 	return false;
 }
 
@@ -62,13 +57,6 @@ bool ofxGuiTabsOption::mouseMoved(ofMouseEventArgs & args){
 bool ofxGuiTabsOption::mousePressed(ofMouseEventArgs & args){
     bIsOver = setValue(args.x, args.y, true);
     return bIsOver;
-//	if(setValue(args.x, args.y, true)){
-//		bIsOver = true;
-//		return true;
-//	}else{
-//		bIsOver = false;
-//		return false;
-//	}
 }
 
 //-----------------------------------------------------------------------
@@ -76,14 +64,6 @@ bool ofxGuiTabsOption::mouseDragged(ofMouseEventArgs & args){
     
     bIsOver = (bGuiActive && b.inside(args));
     return bIsOver;
-    
-//	if(bGuiActive && b.inside(args)){
-//		bIsOver = true;
-//		return true;
-//	}else{
-//		bIsOver = false;
-//		return false;
-//	}
 }
 
 //-----------------------------------------------------------------------
@@ -93,14 +73,6 @@ bool ofxGuiTabsOption::mouseReleased(ofMouseEventArgs & args){
     bIsOver = (wasGuiActive && b.inside(args));
 
     return bIsOver;
-        
-//	if(wasGuiActive && b.inside(args)){
-//		bIsOver = true;
-//		return true;
-//	}else{
-//		bIsOver = false;
-//		return false;
-//	}
 }
 
 //-----------------------------------------------------------------------
@@ -194,16 +166,51 @@ bool ofxGuiTabsOption::setValue(float mx, float my, bool bCheck){
     }
     if( bCheck ){
         bGuiActive = b.inside(mx, my) ;
-//        ){
-//             true;
-//        }else{
-//            bGuiActive = false;
-//        }
     }
     if( bGuiActive ){
-      //  cout << "ofxGuiTabsOption::setValue  name: " << getName() << "\n";
         value =  !value;
         return true;
     }
     return false;
 }
+#ifdef USE_OFX_GUI_TOOLTIP
+//-----------------------------------------------------------------------
+void ofxGuiTabsOption::setupTooltip(ofJson & json, ofxGuiTooltip* tooltips){
+    if(!guiElement){
+        ofLogWarning("ofxGuiTooltipBase::setupTooltip") << "guiElement is nullptr!";
+        return;
+    }
+    removeTooltip();
+    
+    auto name = guiElement -> getName();
+
+    
+    if(!json.contains(name)){
+        json[getName()] = ofJson::object({});
+    }
+
+    auto &j = json[name];
+    
+    if(j.contains("tooltip")){
+        setTooltipText(j["tooltip"]);
+    }else{
+        j["tooltip"] = "Tab Tooltip . Change this text!";
+    }
+    
+    
+//    if(!j.contains("group")){
+//        j["group"]= ofJson::object({});
+//    }
+//
+//    auto& g = j["group"];
+//
+//    if(tooltips && this->guiGroup){
+//        tooltips->registerGui(this->guiGroup, j);
+//    }else{
+//        ofLogError("ofxGuiTabsOption::setupTooltip") << "failed registering gui. ofxGuiTooltip ptr " << boolalpha << (bool)(tooltips) << "  guiGroup ptr" << (bool)(this->guiGroup);
+//    }
+    
+    
+    
+}
+#endif
