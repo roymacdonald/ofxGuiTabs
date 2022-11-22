@@ -48,7 +48,7 @@ public:
 
     ofxGuiGroup * guiGroup = nullptr;
 #ifdef USE_OFX_GUI_TOOLTIP
-    virtual void setupTooltip(ofJson & json, ofxGuiTooltip* tooltips) override;
+    virtual void setupTooltip(ofJson & json) override;
 #endif
 
 protected:

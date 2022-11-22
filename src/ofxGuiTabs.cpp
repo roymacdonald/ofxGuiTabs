@@ -411,7 +411,7 @@ void ofxGuiTabs::unregisterMouseEvents(){
 
 #ifdef USE_OFX_GUI_TOOLTIP
 //--------------------------------------------------------------
-void ofxGuiTabs::setupTooltip(ofJson &json, ofxGuiTooltip* tooltips){
+void ofxGuiTabs::setupTooltip(ofJson &json){
     if(!json.contains(getName())){
         json[getName()] = ofJson::object({});
     }

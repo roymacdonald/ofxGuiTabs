@@ -204,7 +204,7 @@ public:
     ///the json object will get populated with empty strings so it is easier to fill out.
     ///Make sure to save the json back to disk in order to save this auto generated json.
     ///\param json the json object containing the tooltip data
-    virtual void setupTooltip(ofJson & json, ofxGuiTooltip* tooltips) override;
+    virtual void setupTooltip(ofJson & json) override;
     
     ///\ reset all tooltips. This works recursively with any nested tabs
     virtual void resetTooltips() override;

@@ -175,7 +175,7 @@ bool ofxGuiTabsOption::setValue(float mx, float my, bool bCheck){
 }
 #ifdef USE_OFX_GUI_TOOLTIP
 //-----------------------------------------------------------------------
-void ofxGuiTabsOption::setupTooltip(ofJson & json, ofxGuiTooltip* tooltips){
+void ofxGuiTabsOption::setupTooltip(ofJson & json){
     if(!guiElement){
         ofLogWarning("ofxGuiTooltipBase::setupTooltip") << "guiElement is nullptr!";
         return;
