@@ -16,18 +16,21 @@
 
 #ifdef USE_OFX_GUI_TOOLTIP
 #include "ofxGuiTooltipBase.h"
+#include "ofxGuiTooltip.h"
 #endif
 using namespace std;
 
 
 
-class ofxGuiTabs : public ofxBaseGui
+class ofxGuiTabs :public ofxBaseGui
 #ifdef USE_OFX_GUI_TOOLTIP
 , public ofxGuiTooltipBase
 #endif
 {
 
 public:
+    
+    
     virtual ~ofxGuiTabs();
     // ---------------------------------------------------
     // ----------------- Constructors
@@ -201,7 +204,7 @@ public:
     ///the json object will get populated with empty strings so it is easier to fill out.
     ///Make sure to save the json back to disk in order to save this auto generated json.
     ///\param json the json object containing the tooltip data
-    virtual void setupTooltip(ofJson & json) override;
+    virtual void setupTooltip(ofJson & json, ofxGuiTooltip* tooltips) override;
     
     ///\ reset all tooltips. This works recursively with any nested tabs
     virtual void resetTooltips() override;
@@ -223,9 +226,14 @@ public:
     ///otherwise the tooltips might get occluded by the gui.
     virtual void drawTooltip() override;
     
+    
+    ///\brief will enable the tooltips only for the selected tab and disable for all other tabs
+    void enableSelectedTabTooltips();
+
 #endif
 
-
+    virtual void sizeChangedCB() override;
+    
 protected:
 	
 #ifdef USE_OFX_GUI_TOOLTIP
@@ -279,7 +287,9 @@ private:
     // this is used esentially to hold the parameter groups of the tabs so it can be saved and loaded by ofxGui
     ofParameterGroup groupsParam;
 
-    
+#ifdef USE_OFX_GUI_TOOLTIP
+    map<string, shared_ptr<ofxGuiTooltip> > groups_tooltip;
+#endif
     
 };
 

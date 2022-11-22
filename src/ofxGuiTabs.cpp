@@ -36,6 +36,8 @@ ofxGuiTabs::~ofxGuiTabs(){
 
 //--------------------------------------------------------------
 ofxGuiTabs * ofxGuiTabs::setup(std::string name, float width , float height ){
+    
+    
 #ifdef USE_OFX_GUI_TOOLTIP
         guiElement = this;
 #endif
@@ -49,6 +51,7 @@ ofxGuiTabs * ofxGuiTabs::setup(std::string name, float width , float height ){
 	setlectedValueListener = selectedTab.newListener(this, &ofxGuiTabs::selectedTabChanged);
 	
     groupsParam.setName(name);
+    
     bIsSetup = true;
 	return this;
 }
@@ -77,6 +80,18 @@ void ofxGuiTabs::tabChanged(string & name){
 }
 
 //--------------------------------------------------------------
+void ofxGuiTabs::sizeChangedCB(){
+    ofxBaseGui::sizeChangedCB();
+    float w = getShape().width;
+    for(auto g: groups){
+        if(g && !ofIsFloatEqual(w, g->getShape().width)){
+            g->setWidthElements(w);
+        }
+    }
+}
+
+
+//--------------------------------------------------------------
 bool ofxGuiTabs::setSelectedTab( const std::string& tabName){
 
     if(tabs.count(tabName)){
@@ -86,6 +101,10 @@ bool ofxGuiTabs::setSelectedTab( const std::string& tabName){
         
         disableSiblings(tabs[tabName].get());
         
+        enableSelectedTabTooltips();
+#ifdef USE_OFX_GUI_TOOLTIP
+        enableSelectedTabTooltips();
+#endif
         setNeedsRedraw();
         auto t = tabName;
         ofNotifyEvent(selection_E, t, this);
@@ -99,12 +118,13 @@ ofxGuiGroup * ofxGuiTabs::newTab(const string& tabName) {
 
     if(guiGroups.count(tabName) == 0){
         guiGroups[tabName] = make_shared<ofxGuiGroup>(tabName);
-        tabs[tabName] = make_shared<ofxGuiTabsOption>(tabName);
+        tabs[tabName] = make_shared<ofxGuiTabsOption>(tabName, guiGroups[tabName].get());
         tabNames.push_back(tabName);
         groups.push_back(guiGroups[tabName].get());
         tabsCollection.push_back(tabs[tabName].get());
         
         groupsParam.add(guiGroups[tabName]->getParameter());
+
         
         optionsListeners.push(tabs[tabName]->selection_E.newListener(this, &ofxGuiTabs::tabChanged));
     
@@ -391,22 +411,46 @@ void ofxGuiTabs::unregisterMouseEvents(){
 
 #ifdef USE_OFX_GUI_TOOLTIP
 //--------------------------------------------------------------
-void ofxGuiTabs::setupTooltip(ofJson &json){
+void ofxGuiTabs::setupTooltip(ofJson &json, ofxGuiTooltip* tooltips){
     if(!json.contains(getName())){
         json[getName()] = ofJson::object({});
-//        cout << "Created json object\n";
     }
     
     auto& j = json[getName()];
-//    cout << j.dump(4);
-    
-    for(auto&c: tabs)
+    for(auto&c: guiGroups)
     {
-        if(c.second) c.second->setupTooltip(j);
+        if(c.second){
+            if(groups_tooltip.count(c.first) == 0){
+                groups_tooltip[c.first] = make_shared<ofxGuiTooltip>();
+            }
+            if(!j.contains( c.first)){
+                j[c.first] = ofJson::object();
+            }
+
+            
+            groups_tooltip[c.first] ->registerGui(c.second.get(), j[c.first]);
+            groups_tooltip[c.first] ->disable();
+        }
     }
+    
+//    std:: cout << json.dump(4) << "\n";
+    
     enableTooltip();
 }
 
+//--------------------------------------------------------------
+void ofxGuiTabs::enableSelectedTabTooltips(){
+    for(auto& g: groups_tooltip){
+        if(g.second){
+            if(g.first == selectedTab.get()){
+                g.second->enable();
+            }else{
+                g.second->disable();
+            }
+        }
+    }
+    
+}
 //--------------------------------------------------------------
 void ofxGuiTabs::resetTooltips(){
     
@@ -414,6 +458,7 @@ void ofxGuiTabs::resetTooltips(){
     {
         if(c.second) c.second->removeTooltip();
     }
+    groups_tooltip.clear();
 }
 
 //--------------------------------------------------------------
@@ -430,6 +475,7 @@ void ofxGuiTabs::enableTooltip(){
         {
             if(c.second) c.second->enableTooltip();
         }
+        
     }
 }
 
@@ -441,6 +487,9 @@ void ofxGuiTabs::disableTooltip(){
         {
             if(c.second) c.second->disableTooltip();
         }
+        for(auto& g: groups_tooltip){
+            if(g.second)g.second->disable();
+        }
     }
 }
 
@@ -450,6 +499,9 @@ void ofxGuiTabs::drawTooltip(){
         for(auto&c: tabs)
         {
             if(c.second) c.second->drawTooltip();
+        }
+        if(groups_tooltip.count(selectedTab.get())){
+            groups_tooltip[selectedTab.get()]->draw();
         }
     }
 }
